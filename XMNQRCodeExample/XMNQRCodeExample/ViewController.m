@@ -27,6 +27,13 @@
 - (IBAction)handleScanAction:(UIButton *)sender {
     
     XMNCodeReaderController *codeReaderC = [[XMNCodeReaderController alloc] init];
+    
+    /** renderSize 控制扫描区域大小 */
+//    codeReaderC.renderSize = CGSizeMake(200, 200);
+    
+    /** centerOffsetPoint 控制扫描区域的中心点偏移*/
+//    codeReaderC.centerOffsetPoint = CGPointMake(0, 50);
+
     [codeReaderC setCompletedBlock:^(NSString *scanResult){
         
         NSLog(@"this is scan result :%@",scanResult);
