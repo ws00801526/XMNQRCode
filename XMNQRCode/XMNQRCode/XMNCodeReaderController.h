@@ -31,6 +31,10 @@
 @property (assign, nonatomic) BOOL swithchCameraEnabled;
 
 
+/// ========================================
+/// @name   扫描区域的相关属性
+/// ========================================
+
 /** 扫描区域的边框颜色 默认redColor*/
 @property (strong, nonatomic, nonnull) UIColor *scaningCornerColor;
 /** 扫面区域的线条颜色 默认redColor*/
@@ -38,6 +42,12 @@
 
 /** 扫描区域下方的描述性文字 设置为nil时,会隐藏tips */
 @property (strong, nonatomic, nullable) NSAttributedString *tipsAttrs;
+
+
+/** 渲染区域大小  默认 竖屏CGSizeMake(SCREEN_WIDTH-160, SCREEN_WIDTH-160)  横屏 CGSizeMake(SCREEN_HEIGHT-160, SCREEN_HEIGHT - 160)*/
+@property (assign, nonatomic) CGSize renderSize;
+/** 渲染区域的中间位置偏移量  默认CGPointZero */
+@property (assign, nonatomic) CGPoint centerOffsetPoint;
 
 
 

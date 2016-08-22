@@ -24,6 +24,9 @@
 /** 显示描述性文字 */
 @property (strong, nonatomic) UILabel *tipsLabel;
 
+@property (weak, nonatomic)   NSLayoutConstraint *tipsTConstraint;
+
+
 
 @end
 
@@ -77,6 +80,13 @@
     [super viewWillLayoutSubviews];
     /** 重设预览界面的大小,避免大小错误 */
     self.codeReaderView.frame = self.codeReader.previewLayer.frame = self.view.bounds;
+    self.codeReaderView.renderSize = self.renderSize;
+    self.codeReaderView.centerOffsetPoint = self.centerOffsetPoint;
+    
+    if ([self.view.constraints containsObject:self.tipsTConstraint]) {
+        [self.view removeConstraint:self.tipsTConstraint];
+    }
+    [self.view addConstraint:self.tipsTConstraint = [NSLayoutConstraint constraintWithItem:self.tipsLabel attribute:NSLayoutAttributeTop relatedBy:NSLayoutRelationEqual toItem:self.view attribute:NSLayoutAttributeTop multiplier:1.f constant:self.codeReaderView.renderFrame.size.height + self.codeReaderView.renderFrame.origin.y + 20]];
 }
 
 #pragma mark - Method
@@ -117,11 +127,11 @@
     /** 配置切换 宽高 */
     [self.view addConstraint:[NSLayoutConstraint constraintWithItem:self.switchCameraButton attribute:NSLayoutAttributeHeight relatedBy:NSLayoutRelationEqual toItem:nil attribute:NSLayoutAttributeNotAnAttribute multiplier:1.f constant:40.f]];
     [self.view addConstraint:[NSLayoutConstraint constraintWithItem:self.switchCameraButton attribute:NSLayoutAttributeWidth relatedBy:NSLayoutRelationEqual toItem:nil attribute:NSLayoutAttributeNotAnAttribute multiplier:1.f constant:40.f]];
-    [self.view addConstraint:[NSLayoutConstraint constraintWithItem:_switchFlashButton attribute:NSLayoutAttributeHeight relatedBy:NSLayoutRelationEqual toItem:nil attribute:NSLayoutAttributeNotAnAttribute multiplier:1.f constant:40.f]];
-    [self.view addConstraint:[NSLayoutConstraint constraintWithItem:_switchFlashButton attribute:NSLayoutAttributeWidth relatedBy:NSLayoutRelationEqual toItem:nil attribute:NSLayoutAttributeNotAnAttribute multiplier:1.f constant:40.f]];
+    [self.view addConstraint:[NSLayoutConstraint constraintWithItem:self.switchFlashButton attribute:NSLayoutAttributeHeight relatedBy:NSLayoutRelationEqual toItem:nil attribute:NSLayoutAttributeNotAnAttribute multiplier:1.f constant:40.f]];
+    [self.view addConstraint:[NSLayoutConstraint constraintWithItem:self.switchFlashButton attribute:NSLayoutAttributeWidth relatedBy:NSLayoutRelationEqual toItem:nil attribute:NSLayoutAttributeNotAnAttribute multiplier:1.f constant:40.f]];
     
     /** 配置tipsLabel的自动布局 */
-    [self.view addConstraint:[NSLayoutConstraint constraintWithItem:self.tipsLabel attribute:NSLayoutAttributeTop relatedBy:NSLayoutRelationEqual toItem:self.view attribute:NSLayoutAttributeTop multiplier:1.f constant:self.codeReaderView.renderFrame.size.height + self.codeReaderView.renderFrame.origin.y + 20]];
+    [self.view addConstraint:self.tipsTConstraint = [NSLayoutConstraint constraintWithItem:self.tipsLabel attribute:NSLayoutAttributeTop relatedBy:NSLayoutRelationEqual toItem:self.view attribute:NSLayoutAttributeTop multiplier:1.f constant:self.codeReaderView.renderFrame.size.height + self.codeReaderView.renderFrame.origin.y + 20]];
     [self.view addConstraint:[NSLayoutConstraint constraintWithItem:self.tipsLabel attribute:NSLayoutAttributeRight relatedBy:NSLayoutRelationEqual toItem:self.view attribute:NSLayoutAttributeRight multiplier:1.f constant:-16]];
     [self.view addConstraint:[NSLayoutConstraint constraintWithItem:self.tipsLabel attribute:NSLayoutAttributeLeft relatedBy:NSLayoutRelationEqual toItem:self.view attribute:NSLayoutAttributeLeft multiplier:1.f constant:16]];
 }
@@ -187,7 +197,27 @@
     self.codeReaderView.scaningCornerColor = scaningCornerColor;
 }
 
+//- (void)setRenderSize:(CGSize)renderSize {
+//    
+//    self.codeReaderView.renderSize = renderSize;
+//}
+//
+//- (void)setCenterOffsetPoint:(CGPoint)centerOffsetPoint {
+//    
+//    self.codeReaderView.centerOffsetPoint = centerOffsetPoint;
+//}
+
 #pragma mark - Getter
+
+//- (CGPoint)centerOffsetPoint {
+//    
+//    return self.codeReaderView.centerOffsetPoint;
+//}
+//
+//- (CGSize)renderSize {
+//    
+//    return self.codeReaderView.renderSize;
+//}
 
 - (UIColor *)scaningCornerColor {
     

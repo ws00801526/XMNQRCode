@@ -24,8 +24,18 @@
 @interface XMNCodeReaderView : UIView
 
 
-/** 扫描区域 默认 CGRectMake(60,180,SCREEN_WIDTH-160,SCREEN_WIDTH-160) */
-@property (assign, nonatomic) CGRect renderFrame;
+/** 渲染区域大小  默认 竖屏CGSizeMake(SCREEN_WIDTH-160, SCREEN_WIDTH-160)  横屏 CGSizeMake(SCREEN_HEIGHT-160, SCREEN_HEIGHT - 160)*/
+@property (assign, nonatomic) CGSize renderSize;
+/** 渲染区域的中间位置偏移量  默认CGPointZero */
+@property (assign, nonatomic) CGPoint centerOffsetPoint;
+
+/** 扫描区域 {self.renderCenter,
+ self.renderSize} */
+@property (assign, nonatomic, readonly) CGRect renderFrame;
+/** 扫描区域的中心点 CGPointMake(self.center.x + self.centerOffsetPoint.x, self.center.y + self.centerOffsetPoint.y)*/
+@property (assign, nonatomic, readonly) CGPoint renderCenter;
+
+
 
 /** 扫描区域的边框颜色 */
 @property (strong, nonatomic) UIColor *scaningCornerColor;
@@ -35,11 +45,11 @@
 /**
  *  @brief 初始化方法
  *
- *  @param renderFrame 扫描view的页面
+ *  @param renderSize 扫描view的大小
  *
  *  @return
  */
-- (instancetype)initWithRenderFrame:(CGRect)renderFrame;
+- (instancetype)initWithRenderSize:(CGSize)renderSize;
 
 /**
  *  @brief 开始扫描动画

@@ -20,8 +20,6 @@ typedef NS_ENUM(NSUInteger, XMNCodeReaderMaskViewType) {
  */
 @interface XMNCodeReaderMaskView : UIView
 
-@property (assign, nonatomic) XMNCodeReaderMaskViewType maskType;
-
 @end
 
 @implementation XMNCodeReaderMaskView
@@ -52,18 +50,18 @@ typedef NS_ENUM(NSUInteger, XMNCodeReaderMaskViewType) {
 @end
 
 @implementation XMNCodeReaderView
-
+@synthesize renderSize = _renderSize;
 - (instancetype)init {
     
-    return [self initWithRenderFrame:CGRectMake(60, 180, SCREEN_WIDTH - 120, SCREEN_WIDTH - 120)];
+    return [self initWithRenderSize:CGSizeZero];
 }
 
-- (instancetype)initWithRenderFrame:(CGRect)renderFrame {
+- (instancetype)initWithRenderSize:(CGSize)renderSize {
     
     if (self = [super init]) {
         
         self.timer = [NSTimer scheduledTimerWithTimeInterval:.01f target:self selector:@selector(updateLineViewPosition) userInfo:nil repeats:YES];
-        self.renderFrame = renderFrame;
+        self.renderSize = renderSize;
         [self setupOverlayView];
     }
     return self;
@@ -78,24 +76,56 @@ typedef NS_ENUM(NSUInteger, XMNCodeReaderMaskViewType) {
         [self.timer invalidate];
     }
 }
+
+- (void)layoutSubviews {
+    
+    [super layoutSubviews];
+    
+    NSLog(@" this is render frame :%@",NSStringFromCGRect(self.renderFrame));
+    [self.maskViews enumerateObjectsUsingBlock:^(XMNCodeReaderMaskView * _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
+       
+        switch (obj.tag) {
+            case XMNCodeReaderMaskViewTypeTop:
+                obj.frame = CGRectMake(0, 0, self.bounds.size.width, CGRectGetMinY(self.renderFrame));
+                break;
+            case XMNCodeReaderMaskViewTypeLeft:
+                obj.frame = CGRectMake(0, self.renderFrame.origin.y, self.renderFrame.origin.x, self.renderFrame.size.height);
+                break;
+            case XMNCodeReaderMaskViewTypeRight:
+                obj.frame = CGRectMake(CGRectGetMaxX(self.renderFrame), self.renderFrame.origin.y, self.bounds.size.width - CGRectGetMaxX(self.renderFrame), self.renderFrame.size.height);
+                break;
+            case XMNCodeReaderMaskViewTypeBottom:
+                obj.frame = CGRectMake(0, CGRectGetMaxY(self.renderFrame), self.bounds.size.width, self.bounds.size.height - CGRectGetMaxY(self.renderFrame));
+                break;
+        }
+    }];
+    
+    self.cornerView.frame = CGRectInset(CGRectMake(0, 0, self.renderSize.width, self.renderSize.height), 3, 3);
+    self.cornerView.center = self.renderCenter;
+    self.cornerImageView.frame = CGRectMake(0, 0, self.renderSize.width, self.renderSize.height);
+    self.cornerImageView.center = self.renderCenter;
+    
+    self.lineView.frame = CGRectMake(self.renderFrame.origin.x, self.renderFrame.origin.y + 2, self.renderFrame.size.width, self.lineView.frame.size.height);
+}
+
 #pragma mark - Method
 
 - (void)setupOverlayView {
     
-    XMNCodeReaderMaskView *maskTopView = [[XMNCodeReaderMaskView alloc] initWithFrame:CGRectMake(self.renderFrame.origin.x, 0, SCREEN_WIDTH - self.renderFrame.origin.x * 2, self.renderFrame.origin.y)];
-    maskTopView.maskType = XMNCodeReaderMaskViewTypeTop;
+    XMNCodeReaderMaskView *maskTopView = [[XMNCodeReaderMaskView alloc] initWithFrame:CGRectZero];
+    maskTopView.tag = XMNCodeReaderMaskViewTypeTop;
     [self addSubview:maskTopView];
     
-    XMNCodeReaderMaskView *maskLeftView = [[XMNCodeReaderMaskView alloc] initWithFrame:CGRectMake(0, 0, self.renderFrame.origin.x, SCREEN_HEIGHT)];
-    maskLeftView.maskType = XMNCodeReaderMaskViewTypeLeft;
+    XMNCodeReaderMaskView *maskLeftView = [[XMNCodeReaderMaskView alloc] initWithFrame:CGRectZero];
+    maskLeftView.tag = XMNCodeReaderMaskViewTypeLeft;
     [self addSubview:maskLeftView];
     
-    XMNCodeReaderMaskView *maskRightView = [[XMNCodeReaderMaskView alloc] initWithFrame:CGRectMake(self.renderFrame.origin.x + self.renderFrame.size.width, 0, self.renderFrame.origin.x, SCREEN_HEIGHT)];
-    maskRightView.maskType = XMNCodeReaderMaskViewTypeRight;
+    XMNCodeReaderMaskView *maskRightView = [[XMNCodeReaderMaskView alloc] initWithFrame:CGRectZero];
+    maskRightView.tag = XMNCodeReaderMaskViewTypeRight;
     [self addSubview:maskRightView];
     
-    XMNCodeReaderMaskView *maskBottomView = [[XMNCodeReaderMaskView alloc] initWithFrame:CGRectMake(self.renderFrame.origin.x, self.renderFrame.origin.y + self.renderFrame.size.height, SCREEN_WIDTH - self.renderFrame.origin.x * 2, SCREEN_HEIGHT - self.renderFrame.origin.y - self.renderFrame.size.height)];
-    maskBottomView.maskType = XMNCodeReaderMaskViewTypeBottom;
+    XMNCodeReaderMaskView *maskBottomView = [[XMNCodeReaderMaskView alloc] initWithFrame:CGRectZero];
+    maskBottomView.tag = XMNCodeReaderMaskViewTypeBottom;
     [self addSubview:maskBottomView];
     
     self.maskViews = @[maskTopView,maskLeftView,maskRightView,maskBottomView];
@@ -151,62 +181,6 @@ typedef NS_ENUM(NSUInteger, XMNCodeReaderMaskViewType) {
 
 #pragma mark - Setter
 
-- (void)setFrame:(CGRect)frame {
-    
-    [super setFrame:frame];
-    NSLog(@"setFrame :%@",NSStringFromCGRect(frame));
-    
-    if (frame.size.width < frame.size.height) {
-        
-        /** 竖屏状态 */
-        [self.maskViews enumerateObjectsUsingBlock:^(XMNCodeReaderMaskView * _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
-            
-            switch (obj.maskType) {
-                case XMNCodeReaderMaskViewTypeTop:
-                    obj.frame = CGRectMake(self.renderFrame.origin.x, 0, self.bounds.size.width - self.renderFrame.origin.x * 2, self.renderFrame.origin.y);
-                    break;
-                case XMNCodeReaderMaskViewTypeLeft:
-                    obj.frame = CGRectMake(0, 0, self.renderFrame.origin.x, self.bounds.size.height);
-                    break;
-                case XMNCodeReaderMaskViewTypeRight:
-                    obj.frame = CGRectMake(self.renderFrame.origin.x + self.renderFrame.size.width, 0, self.renderFrame.origin.x, self.bounds.size.height);
-                    break;
-                case XMNCodeReaderMaskViewTypeBottom:
-                    obj.frame = CGRectMake(self.renderFrame.origin.x, self.renderFrame.origin.y + self.renderFrame.size.height, self.bounds.size.width - self.renderFrame.origin.x * 2, self.bounds.size.height - self.renderFrame.origin.y - self.renderFrame.size.height);
-                    break;
-            }
-        }];
-
-        self.cornerImageView.frame = self.renderFrame;
-        self.cornerView.frame = CGRectInset(self.cornerImageView.frame, 3, 3);
-        self.lineView.frame = CGRectMake(self.renderFrame.origin.x, self.renderFrame.origin.y + 2, self.renderFrame.size.width, self.lineView.frame.size.height);
-    }else {
-        
-        /** 横屏状态 */
-        [self.maskViews enumerateObjectsUsingBlock:^(XMNCodeReaderMaskView * _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
-            
-            switch (obj.maskType) {
-                case XMNCodeReaderMaskViewTypeTop:
-                    obj.frame = CGRectMake(self.renderFrame.origin.y, 0, self.bounds.size.width -  2*self.renderFrame.origin.y, self.renderFrame.origin.x);
-                    break;
-                case XMNCodeReaderMaskViewTypeLeft:
-                    obj.frame = CGRectMake(0, 0, self.renderFrame.origin.x, self.bounds.size.height);
-                    break;
-                case XMNCodeReaderMaskViewTypeRight:
-                    obj.frame = CGRectMake(self.renderFrame.origin.x + self.renderFrame.size.width, 0, self.renderFrame.origin.x, self.bounds.size.height);
-                    break;
-                case XMNCodeReaderMaskViewTypeBottom:
-                    obj.frame = CGRectMake(self.renderFrame.origin.x, self.renderFrame.origin.y + self.renderFrame.size.height, self.bounds.size.width - self.renderFrame.origin.x * 2, self.bounds.size.height - self.renderFrame.origin.y - self.renderFrame.size.height);
-                    break;
-            }
-        }];
-        
-        self.cornerImageView.frame = CGRectMake(self.renderFrame.origin.y , self.renderFrame.origin.x, self.renderFrame.size.width, self.renderFrame.size.height);
-        self.cornerView.frame = CGRectInset(self.cornerImageView.frame, 3, 3);
-        self.lineView.frame = CGRectMake(self.renderFrame.origin.y, self.renderFrame.origin.x + 2, self.renderFrame.size.height, self.lineView.frame.size.height);
-    }
-}
-
 - (void)setScaningCornerColor:(UIColor *)scaningCornerColor {
     
     _scaningCornerColor = scaningCornerColor;
@@ -219,6 +193,44 @@ typedef NS_ENUM(NSUInteger, XMNCodeReaderMaskViewType) {
     _scaningLineColor = scaningLineColor;
     self.lineView.tintColor = scaningLineColor;
     [self.lineView setNeedsDisplay];
+}
+
+- (void)setCenterOffsetPoint:(CGPoint)centerOffsetPoint {
+    
+    _centerOffsetPoint = centerOffsetPoint;
+    [self setNeedsLayout];
+}
+
+- (void)setRenderSize:(CGSize)renderSize {
+    
+    _renderSize = renderSize;
+    [self setNeedsLayout];
+}
+
+#pragma mark - Getter
+
+- (CGSize)renderSize {
+    
+    if (CGSizeEqualToSize(_renderSize, CGSizeZero)) {
+        if (self.bounds.size.width > self.bounds.size.height) {
+            return CGSizeMake(self.bounds.size.height - 160, self.bounds.size.height - 160);
+        }else {
+            return CGSizeMake(self.bounds.size.width - 160, self.bounds.size.width - 160);
+        }
+    }
+    return _renderSize;
+}
+
+- (CGPoint)renderCenter {
+    
+    return CGPointMake(self.center.x + self.centerOffsetPoint.x, self.center.y + self.centerOffsetPoint.y);
+}
+
+- (CGRect)renderFrame {
+    
+    CGRect renderFrame = {CGPointMake(self.renderCenter.x - self.renderSize.width/2, self.renderCenter.y - self.renderSize.height/2),
+        self.renderSize};
+    return renderFrame;
 }
 
 @end
