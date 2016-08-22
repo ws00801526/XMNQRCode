@@ -51,7 +51,6 @@
     
     self.tipsAttrs = [[NSMutableAttributedString alloc] initWithString:@"将二维码放于框内\n即可开始扫描" attributes:@{NSFontAttributeName:[UIFont systemFontOfSize:16.f]}];
     self.autoScaning = YES;
-    self.scaningLineColor = self.scaningCornerColor = [UIColor greenColor];
     self.swithchCameraEnabled = self.switchFlashEnabled = NO;
     
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(orientationChanged:) name:UIDeviceOrientationDidChangeNotification object:nil];
@@ -87,6 +86,9 @@
         [self.view removeConstraint:self.tipsTConstraint];
     }
     [self.view addConstraint:self.tipsTConstraint = [NSLayoutConstraint constraintWithItem:self.tipsLabel attribute:NSLayoutAttributeTop relatedBy:NSLayoutRelationEqual toItem:self.view attribute:NSLayoutAttributeTop multiplier:1.f constant:self.codeReaderView.renderFrame.size.height + self.codeReaderView.renderFrame.origin.y + 20]];
+    
+    self.codeReaderView.scaningLineColor =  self.scaningLineColor;
+    self.codeReaderView.scaningCornerColor = self.scaningCornerColor;
 }
 
 #pragma mark - Method
@@ -187,46 +189,17 @@
     self.switchCameraButton.hidden = !swithchCameraEnabled;
 }
 
-- (void)setScaningLineColor:(UIColor *)scaningLineColor {
-    
-    self.codeReaderView.scaningLineColor = scaningLineColor;
-}
-
-- (void)setScaningCornerColor:(UIColor *)scaningCornerColor {
-    
-    self.codeReaderView.scaningCornerColor = scaningCornerColor;
-}
-
-//- (void)setRenderSize:(CGSize)renderSize {
-//    
-//    self.codeReaderView.renderSize = renderSize;
-//}
-//
-//- (void)setCenterOffsetPoint:(CGPoint)centerOffsetPoint {
-//    
-//    self.codeReaderView.centerOffsetPoint = centerOffsetPoint;
-//}
 
 #pragma mark - Getter
 
-//- (CGPoint)centerOffsetPoint {
-//    
-//    return self.codeReaderView.centerOffsetPoint;
-//}
-//
-//- (CGSize)renderSize {
-//    
-//    return self.codeReaderView.renderSize;
-//}
-
 - (UIColor *)scaningCornerColor {
     
-    return self.codeReaderView.scaningCornerColor;
+    return _scaningCornerColor ? : self.codeReaderView.scaningCornerColor;
 }
 
 - (UIColor *)scaningLineColor {
     
-    return self.codeReaderView.scaningLineColor;
+    return _scaningLineColor ? : self.codeReaderView.scaningLineColor;
 }
 
 - (NSAttributedString *)tipsAttrs {

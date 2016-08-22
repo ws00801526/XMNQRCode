@@ -60,6 +60,7 @@ typedef NS_ENUM(NSUInteger, XMNCodeReaderMaskViewType) {
     
     if (self = [super init]) {
         
+        self.scaningLineColor = self.scaningCornerColor = [UIColor redColor];
         self.timer = [NSTimer scheduledTimerWithTimeInterval:.01f target:self selector:@selector(updateLineViewPosition) userInfo:nil repeats:YES];
         self.renderSize = renderSize;
         [self setupOverlayView];
@@ -100,7 +101,7 @@ typedef NS_ENUM(NSUInteger, XMNCodeReaderMaskViewType) {
         }
     }];
     
-    self.cornerView.frame = CGRectInset(CGRectMake(0, 0, self.renderSize.width, self.renderSize.height), 3, 3);
+    self.cornerView.frame = CGRectInset(CGRectMake(0, 0, self.renderSize.width, self.renderSize.height), 0, 0);
     self.cornerView.center = self.renderCenter;
     self.cornerImageView.frame = CGRectMake(0, 0, self.renderSize.width, self.renderSize.height);
     self.cornerImageView.center = self.renderCenter;

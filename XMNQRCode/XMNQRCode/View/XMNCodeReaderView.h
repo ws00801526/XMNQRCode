@@ -37,9 +37,9 @@
 
 
 
-/** 扫描区域的边框颜色 */
+/** 扫描区域的边框颜色  默认红色*/
 @property (strong, nonatomic) UIColor *scaningCornerColor;
-/** 扫面区域的线条颜色 */
+/** 扫面区域的线条颜色  默认红色*/
 @property (strong, nonatomic) UIColor *scaningLineColor;
 
 /**

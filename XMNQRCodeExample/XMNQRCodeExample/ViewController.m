@@ -33,6 +33,12 @@
     
     /** centerOffsetPoint 控制扫描区域的中心点偏移*/
 //    codeReaderC.centerOffsetPoint = CGPointMake(0, 50);
+    
+    /** 修改扫描线颜色 */
+    codeReaderC.scaningLineColor = [UIColor redColor];
+    
+    /** 修改扫描框颜色 */
+    codeReaderC.scaningCornerColor = [UIColor yellowColor];
 
     [codeReaderC setCompletedBlock:^(NSString *scanResult){
         
