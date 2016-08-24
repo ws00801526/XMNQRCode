@@ -38,44 +38,41 @@ typedef NS_ENUM(NSUInteger, XMNCodeReaderMaskViewType) {
 
 @interface XMNCodeReaderView ()
 
-@property (strong, nonatomic) NSTimer *timer;
 @property (weak, nonatomic)   UIImageView *lineView;
 @property (weak, nonatomic)   UIImageView *cornerImageView;
 @property (weak, nonatomic)   UIView *cornerView;
 
-
 @property (copy, nonatomic)   NSArray<XMNCodeReaderMaskView *> *maskViews;
-
 
 @end
 
 @implementation XMNCodeReaderView
 @synthesize renderSize = _renderSize;
-- (instancetype)init {
-    
-    return [self initWithRenderSize:CGSizeZero];
-}
 
 - (instancetype)initWithRenderSize:(CGSize)renderSize {
     
-    if (self = [super init]) {
+    if (self = [super initWithFrame:CGRectZero]) {
         
         self.scaningLineColor = self.scaningCornerColor = [UIColor redColor];
-        self.timer = [NSTimer scheduledTimerWithTimeInterval:.01f target:self selector:@selector(updateLineViewPosition) userInfo:nil repeats:YES];
         self.renderSize = renderSize;
         [self setupOverlayView];
     }
     return self;
 }
 
+- (instancetype)initWithFrame:(CGRect)frame {
+    
+    return [self initWithRenderSize:CGSizeZero];
+}
+
+- (instancetype)initWithCoder:(NSCoder *)aDecoder {
+    
+    return [self initWithRenderSize:CGSizeZero];
+}
 
 - (void)dealloc {
     
     NSLog(@"%@  dealloc",NSStringFromClass([self class]));
-
-    if (self.timer) {
-        [self.timer invalidate];
-    }
 }
 
 - (void)layoutSubviews {
@@ -107,6 +104,8 @@ typedef NS_ENUM(NSUInteger, XMNCodeReaderMaskViewType) {
     self.cornerImageView.center = self.renderCenter;
     
     self.lineView.frame = CGRectMake(self.renderFrame.origin.x, self.renderFrame.origin.y + 2, self.renderFrame.size.width, self.lineView.frame.size.height);
+    
+    [self startAnimation];
 }
 
 #pragma mark - Method
@@ -161,7 +160,12 @@ typedef NS_ENUM(NSUInteger, XMNCodeReaderMaskViewType) {
 - (void)updateLineViewPosition {
     
     CGRect lineFrame = self.lineView.frame;
-    lineFrame.origin.y ++ ;
+
+    if (lineFrame.size.height + lineFrame.origin.y + 20 >= self.renderFrame.size.height + self.renderFrame.origin.y) {
+        lineFrame.origin.y ++ ;
+    }else {
+        lineFrame.origin.y += 2 ;
+    }
     if ((lineFrame.origin.y + 2 + lineFrame.size.height) >= (self.renderFrame.size.height + self.renderFrame.origin.y)) {
         lineFrame.origin.y = self.renderFrame.origin.y + 2;
     }
@@ -171,13 +175,40 @@ typedef NS_ENUM(NSUInteger, XMNCodeReaderMaskViewType) {
 
 - (void)startAnimation {
     
-    [self.timer setFireDate:[NSDate date]];
+//    [self stopAnimation];
+    CABasicAnimation *animation = (CABasicAnimation *)[self.lineView.layer animationForKey:@"linePositionY"];
+    int fromY = self.renderFrame.origin.y + 2;
+    int toY = self.renderFrame.origin.y - 4  + self.renderFrame.size.height;
+    
+    if (fromY <= 0 || toY <= 0) {
+        return;
+    }
+    if (animation) {
+        if ([animation.fromValue integerValue] == fromY && [animation.toValue integerValue] == toY) {
+            return;
+        }
+        [self.lineView.layer removeAnimationForKey:@"linePositionY"];
+    }
+    
+    animation = [CABasicAnimation animationWithKeyPath:@"position.y"];
+    animation.duration = 2.f;
+    animation.repeatCount = NSUIntegerMax;
+    animation.fromValue = @(self.renderFrame.origin.y + 2);
+    animation.toValue = @(self.renderFrame.origin.y - 4  + self.renderFrame.size.height);
+    animation.timingFunction = [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionEaseInEaseOut];
+    animation.removedOnCompletion = NO;
+    animation.autoreverses = NO;
+    [self.lineView.layer addAnimation:animation forKey:@"linePositionY"];
+    if ([animation.toValue integerValue] - [animation.fromValue integerValue] <= 10) {
+        return;
+    }
+    NSLog(@"this is animation :%@ :%@",animation.fromValue,animation.toValue);
 }
 
 
 - (void)stopAnimation {
     
-    [self.timer setFireDate:[NSDate distantFuture]];
+    [self.lineView.layer removeAllAnimations];
 }
 
 #pragma mark - Setter
@@ -214,9 +245,9 @@ typedef NS_ENUM(NSUInteger, XMNCodeReaderMaskViewType) {
     
     if (CGSizeEqualToSize(_renderSize, CGSizeZero)) {
         if (self.bounds.size.width > self.bounds.size.height) {
-            return CGSizeMake(self.bounds.size.height - 160, self.bounds.size.height - 160);
+            return CGSizeMake(MAX(0, self.bounds.size.height - 160), MAX(0, self.bounds.size.height - 160));
         }else {
-            return CGSizeMake(self.bounds.size.width - 160, self.bounds.size.width - 160);
+            return CGSizeMake(MAX(0, self.bounds.size.width - 160), MAX(0, self.bounds.size.width - 160));
         }
     }
     return _renderSize;
@@ -233,5 +264,4 @@ typedef NS_ENUM(NSUInteger, XMNCodeReaderMaskViewType) {
         self.renderSize};
     return renderFrame;
 }
-
 @end

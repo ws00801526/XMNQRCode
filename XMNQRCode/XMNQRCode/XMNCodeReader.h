@@ -37,7 +37,7 @@
  *  @warning 默认支持QRCode
  *  @return
  */
-- (instancetype _Nullable)initWithMetadataObjectTypes:(NSArray * _Nullable)metadataObjectTypes;
+- (instancetype _Nullable)initWithMetadataObjectTypes:(NSArray * _Nullable)metadataObjectTypes NS_DESIGNATED_INITIALIZER;
 
 + (instancetype _Nullable)readerWithMetadataObjectTypes:(NSArray * _Nullable)metadataObjectTypes;
 
