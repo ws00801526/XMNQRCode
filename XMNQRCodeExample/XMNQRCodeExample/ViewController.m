@@ -44,6 +44,7 @@
         
         NSLog(@"this is scan result :%@",scanResult);
     }];
+//    [self presentViewController:codeReaderC animated:YES completion:nil];
     [self.navigationController pushViewController:codeReaderC animated:YES];
 }
 

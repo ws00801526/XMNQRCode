@@ -55,7 +55,7 @@
  *  metadata输出设备
  */
 - (void)setupAVComponents {
-    
+
     /** 获取默认的摄像头捕捉设备 */
     self.defaultDevice = [AVCaptureDevice defaultDeviceWithMediaType:AVMediaTypeVideo];
     
@@ -72,14 +72,13 @@
                 self.frontDeviceInput = [AVCaptureDeviceInput deviceInputWithDevice:self.frontDevice error:nil];
             }
         }
+        [self.session addOutput:self.metadataOutput];
+        [self.session addInput:self.defaultDeviceInput];
+        
+        [self.metadataOutput setMetadataObjectsDelegate:self queue:dispatch_get_main_queue()];
+        [self.metadataOutput setMetadataObjectTypes:self.metadataObjectTypes];
+        [self.previewLayer setVideoGravity:AVLayerVideoGravityResizeAspectFill];
     }
-    
-    [self.session addOutput:self.metadataOutput];
-    [self.session addInput:self.defaultDeviceInput];
-    
-    [self.metadataOutput setMetadataObjectsDelegate:self queue:dispatch_get_main_queue()];
-    [self.metadataOutput setMetadataObjectTypes:self.metadataObjectTypes];
-    [self.previewLayer setVideoGravity:AVLayerVideoGravityResizeAspectFill];
 }
 
 

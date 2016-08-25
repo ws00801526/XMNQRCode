@@ -85,7 +85,9 @@
     if ([self.view.constraints containsObject:self.tipsTConstraint]) {
         [self.view removeConstraint:self.tipsTConstraint];
     }
-    [self.view addConstraint:self.tipsTConstraint = [NSLayoutConstraint constraintWithItem:self.tipsLabel attribute:NSLayoutAttributeTop relatedBy:NSLayoutRelationEqual toItem:self.view attribute:NSLayoutAttributeTop multiplier:1.f constant:self.codeReaderView.renderFrame.size.height + self.codeReaderView.renderFrame.origin.y + 20]];
+    if (self.tipsLabel.superview) {
+        [self.view addConstraint:self.tipsTConstraint = [NSLayoutConstraint constraintWithItem:self.tipsLabel attribute:NSLayoutAttributeTop relatedBy:NSLayoutRelationEqual toItem:self.view attribute:NSLayoutAttributeTop multiplier:1.f constant:self.codeReaderView.renderFrame.size.height + self.codeReaderView.renderFrame.origin.y + 20]];
+    }
     
     self.codeReaderView.scaningLineColor =  self.scaningLineColor;
     self.codeReaderView.scaningCornerColor = self.scaningCornerColor;
@@ -94,6 +96,13 @@
 #pragma mark - Method
 
 - (void)setupUI {
+    
+    self.view.backgroundColor = [UIColor whiteColor];
+    
+    /** 用户未开启相机授权, 不进行codeReader授权 */
+    if (![self hasAVAuthorization]) {
+        return;
+    }
     
     self.codeReader = [[XMNCodeReader alloc] init];
     self.codeReaderView = [[XMNCodeReaderView alloc] init];
@@ -110,6 +119,77 @@
     [self.view.layer addSublayer:self.codeReader.previewLayer];
     [self.view addSubview:self.codeReaderView];
     [self setupButton];
+}
+
+/**
+ *  @brief 判断用户是否授权了相机访问
+ *  并且提示用户去授权访问
+ *  @return YES or NO
+ */
+- (BOOL)hasAVAuthorization {
+    
+    NSString *mediaType = AVMediaTypeVideo;//读取媒体类型
+    AVAuthorizationStatus authStatus = [AVCaptureDevice authorizationStatusForMediaType:mediaType];//读取设备授权状态
+    
+    switch (authStatus) {
+        case AVAuthorizationStatusNotDetermined:
+        {
+            __weak typeof(*&self) wSelf = self;
+            [AVCaptureDevice requestAccessForMediaType:AVMediaTypeVideo completionHandler:^(BOOL granted) {
+                __strong typeof(*&wSelf) self = wSelf;
+                if (granted) {
+                    [self setupUI];
+                }else {
+                    if (self.presentingViewController) {
+                        [self.presentingViewController dismissViewControllerAnimated:YES completion:nil];
+                    }else {
+                        [self.navigationController popViewControllerAnimated:YES];
+                    }
+                }
+            }];
+            return NO;
+        }
+        case AVAuthorizationStatusDenied:
+        case AVAuthorizationStatusRestricted:
+        {
+            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(.5f * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+                [self showAVAuthorizationAlert];
+            });
+            return NO;
+        }
+        default:
+            return YES;
+    }
+}
+
+- (void)showAVAuthorizationAlert {
+    
+    UIAlertController *alertC = [UIAlertController alertControllerWithTitle:@"提示" message:@"未开启应用相机权限,请在设置中启用" preferredStyle:UIAlertControllerStyleAlert];
+    
+    __weak typeof(*&self) wSelf = self;
+    UIAlertAction *cancelAction = [UIAlertAction actionWithTitle:@"稍后开启" style:UIAlertActionStyleCancel handler:^(UIAlertAction * _Nonnull action) {
+       
+        __strong typeof(*&wSelf) self = wSelf;
+        if (self.presentingViewController) {
+            [self.presentingViewController dismissViewControllerAnimated:YES completion:nil];
+        }else {
+            [self.navigationController popViewControllerAnimated:YES];
+        }
+    }];
+    
+    UIAlertAction *confirmAction = [UIAlertAction actionWithTitle:@"前往设置" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+       
+        [[UIApplication sharedApplication] openURL:[NSURL URLWithString:UIApplicationOpenSettingsURLString]];
+        if (self.presentingViewController) {
+            [self.presentingViewController dismissViewControllerAnimated:YES completion:nil];
+        }else {
+            [self.navigationController popViewControllerAnimated:YES];
+        }
+    }];
+    
+    [alertC addAction:cancelAction];
+    [alertC addAction:confirmAction];
+    [self showDetailViewController:alertC sender:self];
 }
 
 - (void)setupButton {

@@ -175,7 +175,6 @@ typedef NS_ENUM(NSUInteger, XMNCodeReaderMaskViewType) {
 
 - (void)startAnimation {
     
-//    [self stopAnimation];
     CABasicAnimation *animation = (CABasicAnimation *)[self.lineView.layer animationForKey:@"linePositionY"];
     int fromY = self.renderFrame.origin.y + 2;
     int toY = self.renderFrame.origin.y - 4  + self.renderFrame.size.height;
