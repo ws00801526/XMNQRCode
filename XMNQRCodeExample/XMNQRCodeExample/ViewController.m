@@ -36,6 +36,8 @@
     
     /** 修改扫描线颜色 */
     codeReaderC.scaningLineColor = [UIColor redColor];
+    codeReaderC.switchFlashEnabled = YES;
+    codeReaderC.switchCameraEnabled = YES;
     
     /** 修改扫描框颜色 */
     codeReaderC.scaningCornerColor = [UIColor yellowColor];

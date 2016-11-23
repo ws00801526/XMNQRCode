@@ -51,9 +51,10 @@
     
     self.tipsAttrs = [[NSMutableAttributedString alloc] initWithString:@"将二维码放于框内\n即可开始扫描" attributes:@{NSFontAttributeName:[UIFont systemFontOfSize:16.f]}];
     self.autoScaning = YES;
-    self.swithchCameraEnabled = self.switchFlashEnabled = NO;
     
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(orientationChanged:) name:UIDeviceOrientationDidChangeNotification object:nil];
+    
+    NSLog(@"viewdidload over");
 }
 
 #pragma mark - Override Method
@@ -79,8 +80,10 @@
     [super viewWillLayoutSubviews];
     /** 重设预览界面的大小,避免大小错误 */
     self.codeReaderView.frame = self.codeReader.previewLayer.frame = self.view.bounds;
-    self.codeReaderView.renderSize = self.renderSize;
-    self.codeReaderView.centerOffsetPoint = self.centerOffsetPoint;
+
+    /** 增加设置扫描区域贡呢 */
+    CGRect intertRect = [self.codeReader.previewLayer metadataOutputRectOfInterestForRect:self.codeReaderView.renderFrame];
+    self.codeReader.metadataOutput.rectOfInterest = intertRect;
     
     if ([self.view.constraints containsObject:self.tipsTConstraint]) {
         [self.view removeConstraint:self.tipsTConstraint];
@@ -88,9 +91,6 @@
     if (self.tipsLabel.superview) {
         [self.view addConstraint:self.tipsTConstraint = [NSLayoutConstraint constraintWithItem:self.tipsLabel attribute:NSLayoutAttributeTop relatedBy:NSLayoutRelationEqual toItem:self.view attribute:NSLayoutAttributeTop multiplier:1.f constant:self.codeReaderView.renderFrame.size.height + self.codeReaderView.renderFrame.origin.y + 20]];
     }
-    
-    self.codeReaderView.scaningLineColor =  self.scaningLineColor;
-    self.codeReaderView.scaningCornerColor = self.scaningCornerColor;
 }
 
 #pragma mark - Method
@@ -106,6 +106,10 @@
     
     self.codeReader = [[XMNCodeReader alloc] init];
     self.codeReaderView = [[XMNCodeReaderView alloc] init];
+    self.codeReaderView.scaningLineColor = self.scaningLineColor;
+    self.codeReaderView.scaningCornerColor = self.scaningCornerColor;
+    self.codeReaderView.renderSize = self.renderSize;
+    self.codeReaderView.centerOffsetPoint = self.centerOffsetPoint;
     
     __weak typeof(*&self) wSelf = self;
     
@@ -199,11 +203,9 @@
     [self.view addSubview:self.switchCameraButton];
     
     [self.view addConstraint:[NSLayoutConstraint constraintWithItem:self.switchCameraButton attribute:NSLayoutAttributeRight relatedBy:NSLayoutRelationEqual toItem:self.view attribute:NSLayoutAttributeRight multiplier:1.f constant:0]];
-    
     [self.view addConstraint:[NSLayoutConstraint constraintWithItem:self.switchCameraButton attribute:NSLayoutAttributeTop relatedBy:NSLayoutRelationEqual toItem:self.view attribute:NSLayoutAttributeTop multiplier:1.f constant:self.navigationController ? 64 : 84]];
     
     [self.view addConstraint:[NSLayoutConstraint constraintWithItem:_switchFlashButton attribute:NSLayoutAttributeRight relatedBy:NSLayoutRelationEqual toItem:self.switchCameraButton attribute:NSLayoutAttributeRight multiplier:1.f constant:-50]];
-    
     [self.view addConstraint:[NSLayoutConstraint constraintWithItem:_switchFlashButton attribute:NSLayoutAttributeTop relatedBy:NSLayoutRelationEqual toItem:self.view attribute:NSLayoutAttributeTop multiplier:1.f constant:self.navigationController ? 64 : 84]];
 
     /** 配置切换 宽高 */
@@ -261,14 +263,15 @@
 
 - (void)setSwitchFlashEnabled:(BOOL)switchFlashEnabled {
     
+    _switchFlashEnabled = switchFlashEnabled;
     self.switchFlashButton.hidden = !switchFlashEnabled;
 }
 
-- (void)setSwithchCameraEnabled:(BOOL)swithchCameraEnabled {
+- (void)setSwitchCameraEnabled:(BOOL)switchCameraEnabled {
     
-    self.switchCameraButton.hidden = !swithchCameraEnabled;
+    _switchCameraEnabled = switchCameraEnabled;
+    self.switchCameraButton.hidden = !switchCameraEnabled;
 }
-
 
 #pragma mark - Getter
 
@@ -292,6 +295,7 @@
     if (!_switchCameraButton) {
         
         _switchCameraButton = [UIButton buttonWithType:UIButtonTypeCustom];
+        _switchCameraButton.hidden = YES;
         _switchCameraButton.translatesAutoresizingMaskIntoConstraints = NO;
         NSBundle *bundle = [NSBundle bundleWithIdentifier:@"com.XMFraker.XMNQRCode"];
         if (!bundle) {
@@ -301,9 +305,7 @@
         NSString *onImageName = [NSString stringWithFormat:@"camera_switch@2x"];
         
         [_switchCameraButton setImage:[UIImage imageWithContentsOfFile:[resourceBundle pathForResource:onImageName ofType:@"png"]] forState:UIControlStateNormal];
-        
         [_switchCameraButton addTarget:self action:@selector(handleSwitchCamera:) forControlEvents:UIControlEventTouchUpInside];
-
     }
     return _switchCameraButton;
 }
@@ -314,6 +316,7 @@
     if (!_switchFlashButton) {
         
         _switchFlashButton = [UIButton buttonWithType:UIButtonTypeCustom];
+        _switchFlashButton.hidden = YES;
         _switchFlashButton.translatesAutoresizingMaskIntoConstraints = NO;
         NSBundle *bundle = [NSBundle bundleWithIdentifier:@"com.XMFraker.XMNQRCode"];
         if (!bundle) {
@@ -326,7 +329,6 @@
         [_switchFlashButton setImage:[UIImage imageWithContentsOfFile:[resourceBundle pathForResource:onImageName ofType:@"png"]] forState:UIControlStateNormal];
         [_switchFlashButton setImage:[UIImage imageWithContentsOfFile:[resourceBundle pathForResource:offImageName ofType:@"png"]] forState:UIControlStateSelected];
         [_switchFlashButton setImage:[UIImage imageWithContentsOfFile:[resourceBundle pathForResource:offImageName ofType:@"png"]] forState:UIControlStateHighlighted];
-        
         [_switchFlashButton addTarget:self action:@selector(handleSwitchFlash:) forControlEvents:UIControlEventTouchUpInside];
     }
     return _switchFlashButton;
@@ -344,6 +346,24 @@
         _tipsLabel.lineBreakMode = NSLineBreakByWordWrapping;
     }
     return _tipsLabel;
+}
+
+
+#pragma mark - Class Method
+
++ (NSString *)readQRCodeWithImage:(UIImage * __nonnull)image {
+    
+    if (!image) {
+        
+        return nil;
+    }
+    CIContext *context = [CIContext contextWithOptions:nil];
+    CIDetector *detector = [CIDetector detectorOfType:CIDetectorTypeQRCode context:context options:@{CIDetectorAccuracy:CIDetectorAccuracyHigh}];
+    CIImage *ciImage = [CIImage imageWithCGImage:image.CGImage];
+    NSArray *features = [detector featuresInImage:ciImage];
+    CIQRCodeFeature *feature = [features firstObject];
+    NSString *result = feature.messageString;
+    return result;
 }
 
 @end

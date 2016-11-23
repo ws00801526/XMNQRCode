@@ -28,7 +28,7 @@
  *  是否可以切换摄像头
  *  如果为是 显示切换摄像头按钮    默认 NO
  **/
-@property (assign, nonatomic) BOOL swithchCameraEnabled;
+@property (assign, nonatomic) BOOL switchCameraEnabled;
 
 
 /// ========================================
@@ -49,8 +49,6 @@
 /** 渲染区域的中间位置偏移量  默认CGPointZero */
 @property (assign, nonatomic) CGPoint centerOffsetPoint;
 
-
-
 /**
  *  @brief 开始扫描
  */
@@ -61,5 +59,8 @@
  */
 - (void)stopScaning;
 
+#pragma mark - Class Method
+
++ (NSString * __nullable)readQRCodeWithImage:(UIImage * __nonnull)image;
 
 @end

@@ -15,6 +15,8 @@
 /** 显示摄像头获取的页面信息 */
 @property (strong, nonatomic, readonly, nonnull) AVCaptureVideoPreviewLayer *previewLayer;
 
+@property (strong, nonatomic, readonly, nonnull) AVCaptureMetadataOutput    *metadataOutput;
+
 /** 当前codeReader检测的 code类型 具体参考 <AVFoundation/AVMetadataObject> */
 @property (copy, nonatomic, readonly, nonnull)   NSArray *metadataObjectTypes;
 
