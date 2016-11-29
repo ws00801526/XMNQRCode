@@ -130,6 +130,7 @@
 				TargetAttributes = {
 					974FFB231D66D3E300F9E332 = {
 						CreatedOnToolsVersion = 7.3.1;
+						DevelopmentTeam = N9G92VG962;
 					};
 				};
 			};
@@ -283,6 +284,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				DEVELOPMENT_TEAM = N9G92VG962;
 				INFOPLIST_FILE = XMNQRCodeExample/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.XMFraker.XMNQRCodeExample;
@@ -294,6 +296,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				DEVELOPMENT_TEAM = N9G92VG962;
 				INFOPLIST_FILE = XMNQRCodeExample/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.XMFraker.XMNQRCodeExample;

@@ -53,7 +53,7 @@
     self.autoScaning = YES;
     
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(orientationChanged:) name:UIDeviceOrientationDidChangeNotification object:nil];
-    
+
     NSLog(@"viewdidload over");
 }
 
@@ -297,14 +297,9 @@
         _switchCameraButton = [UIButton buttonWithType:UIButtonTypeCustom];
         _switchCameraButton.hidden = YES;
         _switchCameraButton.translatesAutoresizingMaskIntoConstraints = NO;
-        NSBundle *bundle = [NSBundle bundleWithIdentifier:@"com.XMFraker.XMNQRCode"];
-        if (!bundle) {
-            bundle = [NSBundle mainBundle];
-        }
-        NSBundle *resourceBundle = [NSBundle bundleWithPath:[bundle pathForResource:@"XMNQRCode" ofType:@"bundle"]];
         NSString *onImageName = [NSString stringWithFormat:@"camera_switch@2x"];
         
-        [_switchCameraButton setImage:[UIImage imageWithContentsOfFile:[resourceBundle pathForResource:onImageName ofType:@"png"]] forState:UIControlStateNormal];
+        [_switchCameraButton setImage:[UIImage imageWithContentsOfFile:[[XMNCodeReaderController resourceBundle] pathForResource:onImageName ofType:@"png"]] forState:UIControlStateNormal];
         [_switchCameraButton addTarget:self action:@selector(handleSwitchCamera:) forControlEvents:UIControlEventTouchUpInside];
     }
     return _switchCameraButton;
@@ -318,17 +313,12 @@
         _switchFlashButton = [UIButton buttonWithType:UIButtonTypeCustom];
         _switchFlashButton.hidden = YES;
         _switchFlashButton.translatesAutoresizingMaskIntoConstraints = NO;
-        NSBundle *bundle = [NSBundle bundleWithIdentifier:@"com.XMFraker.XMNQRCode"];
-        if (!bundle) {
-            bundle = [NSBundle mainBundle];
-        }
-        NSBundle *resourceBundle = [NSBundle bundleWithPath:[bundle pathForResource:@"XMNQRCode" ofType:@"bundle"]];
         NSString *offImageName = [NSString stringWithFormat:@"camera_flash_off@2x"];
         NSString *onImageName = [NSString stringWithFormat:@"camera_flash_on@2x"];
         
-        [_switchFlashButton setImage:[UIImage imageWithContentsOfFile:[resourceBundle pathForResource:onImageName ofType:@"png"]] forState:UIControlStateNormal];
-        [_switchFlashButton setImage:[UIImage imageWithContentsOfFile:[resourceBundle pathForResource:offImageName ofType:@"png"]] forState:UIControlStateSelected];
-        [_switchFlashButton setImage:[UIImage imageWithContentsOfFile:[resourceBundle pathForResource:offImageName ofType:@"png"]] forState:UIControlStateHighlighted];
+        [_switchFlashButton setImage:[UIImage imageWithContentsOfFile:[[XMNCodeReaderController resourceBundle] pathForResource:onImageName ofType:@"png"]] forState:UIControlStateNormal];
+        [_switchFlashButton setImage:[UIImage imageWithContentsOfFile:[[XMNCodeReaderController resourceBundle] pathForResource:offImageName ofType:@"png"]] forState:UIControlStateSelected];
+        [_switchFlashButton setImage:[UIImage imageWithContentsOfFile:[[XMNCodeReaderController resourceBundle] pathForResource:offImageName ofType:@"png"]] forState:UIControlStateHighlighted];
         [_switchFlashButton addTarget:self action:@selector(handleSwitchFlash:) forControlEvents:UIControlEventTouchUpInside];
     }
     return _switchFlashButton;
@@ -364,6 +354,27 @@
     CIQRCodeFeature *feature = [features firstObject];
     NSString *result = feature.messageString;
     return result;
+}
+
+
++ (AVAuthorizationStatus)authorizationStatus {
+    
+    return [AVCaptureDevice authorizationStatusForMediaType:AVMediaTypeVideo];
+}
+
++ (NSBundle *)resourceBundle {
+    
+    /** 通过framework方式引用的bundle */
+    NSBundle *bundle = [NSBundle bundleWithIdentifier:@"com.XMFraker.XMNQRCode"];
+    if (!bundle) {
+        /** pod使用方式 引入的bundle */
+        bundle = [NSBundle bundleWithIdentifier:@"org.cocoapods.XMNQRCode"];
+    }
+    if (!bundle) {
+        /** 直接代码方式引用bundle */
+        bundle = [NSBundle mainBundle];
+    }
+    return [NSBundle bundleWithPath:[bundle pathForResource:@"XMNQRCode" ofType:@"bundle"]];
 }
 
 @end

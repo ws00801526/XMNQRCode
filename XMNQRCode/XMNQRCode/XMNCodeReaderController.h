@@ -7,6 +7,7 @@
 //
 
 #import <UIKit/UIKit.h>
+#import <AVFoundation/AVCaptureDevice.h>
 
 /**
  *  @brief 实现Code 扫描页面
@@ -61,6 +62,21 @@
 
 #pragma mark - Class Method
 
+
+/**
+ 识别图片中的二维码,并返回对应二维码数据
+
+ @param image 需要识别的二维码图片
+ @return 识别后的二维码数据
+ */
 + (NSString * __nullable)readQRCodeWithImage:(UIImage * __nonnull)image;
+
+
+/**
+ 获取当前相机授权状态
+ 如果用户未授权访问相机,是无法调用二维码扫描功能,需要引导用户开启授权
+ @return see AVAuthorizationStatus
+ */
++ (AVAuthorizationStatus)authorizationStatus;
 
 @end
