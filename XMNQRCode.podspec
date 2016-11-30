@@ -11,9 +11,8 @@ Pod::Spec.new do |s|
   s.version      = "0.0.1"
   s.summary      = "使用系统api实现二维码扫描功能,二维码图片识别功能"
   s.homepage     = "https://github.com/ws00801526/XMNQRCode"
-  s.license      = "MIT (example)"
-  s.author             = { "XMFraker" => "3057600441@qq.com" }
-  # s.platform     = :ios
+  s.license      = "MIT"
+  s.author       = { "XMFraker" => "3057600441@qq.com" }
   s.platform     = :ios, "8.0"
   s.source       = { :git => "https://github.com/ws00801526/XMNQRCode.git", :tag => "#{s.version}" }
   s.source_files  = "XMNQRCode/XMNQRCode/*.{h,m}","XMNQRCode/XMNQRCode/View/*.{h,m}"

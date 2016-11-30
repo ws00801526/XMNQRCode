@@ -63,8 +63,8 @@
         self.defaultDeviceInput = [AVCaptureDeviceInput deviceInputWithDevice:self.defaultDevice error:nil];
         self.metadataOutput     = [[AVCaptureMetadataOutput alloc] init];
         self.session            = [[AVCaptureSession alloc] init];
-        self.previewLayer       = [AVCaptureVideoPreviewLayer layerWithSession:self.session];
-        
+        self.previewLayer = [AVCaptureVideoPreviewLayer layerWithSession:self.session];
+
         for (AVCaptureDevice *device in [AVCaptureDevice devicesWithMediaType:AVMediaTypeVideo]) {
             /** 获取前置输入设备 */
             if (device.position == AVCaptureDevicePositionFront) {
@@ -77,8 +77,8 @@
         
         [self.metadataOutput setMetadataObjectsDelegate:self queue:dispatch_get_main_queue()];
         [self.metadataOutput setMetadataObjectTypes:self.metadataObjectTypes];
-        [self.previewLayer setVideoGravity:AVLayerVideoGravityResizeAspectFill];
     }
+    [self.previewLayer setVideoGravity:AVLayerVideoGravityResizeAspectFill];
 }
 
 

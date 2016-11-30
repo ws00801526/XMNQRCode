@@ -26,7 +26,10 @@
 
 @property (weak, nonatomic)   NSLayoutConstraint *tipsTConstraint;
 
+/** 是否已经初始化过 */
+@property (assign, nonatomic, getter=isSetuped) BOOL setuped;
 
+@property (weak, nonatomic)   UIActivityIndicatorView *indicatorView;
 
 @end
 
@@ -46,15 +49,17 @@
 - (void)viewDidLoad {
     
     [super viewDidLoad];
-    
-    [self setupUI];
-    
+
     self.tipsAttrs = [[NSMutableAttributedString alloc] initWithString:@"将二维码放于框内\n即可开始扫描" attributes:@{NSFontAttributeName:[UIFont systemFontOfSize:16.f]}];
     self.autoScaning = YES;
     
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(orientationChanged:) name:UIDeviceOrientationDidChangeNotification object:nil];
-
-    NSLog(@"viewdidload over");
+    self.view.backgroundColor = [UIColor blackColor];
+    
+    UIActivityIndicatorView *indicatorView = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleWhiteLarge];
+    [indicatorView startAnimating];
+    indicatorView.center = self.view.center;
+    [self.view addSubview:self.indicatorView = indicatorView];
 }
 
 #pragma mark - Override Method
@@ -63,7 +68,7 @@
     
     [super viewWillAppear:animated];
     NSLog(@"%@ viewWillAppear",NSStringFromClass([self class]));
-    if (self.isAutoScaning) {
+    if (self.isAutoScaning && self.isSetuped) {
         [self startScaning];
     }
 }
@@ -75,44 +80,43 @@
     [self stopScaning];
 }
 
+- (void)viewDidAppear:(BOOL)animated {
+    
+    [super viewDidAppear:animated];
+    NSLog(@"%@ viewDidAppear",NSStringFromClass([self class]));
+    if (!self.isSetuped && [self hasAVAuthorization]) {
+        
+        [self setupButton];
+        [self setupCodeReader];
+        [self startScaning];
+    }
+}
+
 - (void)viewWillLayoutSubviews {
     
     [super viewWillLayoutSubviews];
-    /** 重设预览界面的大小,避免大小错误 */
-    self.codeReaderView.frame = self.codeReader.previewLayer.frame = self.view.bounds;
+    [self setupReaderFrame];
+}
 
-    /** 增加设置扫描区域贡呢 */
-    CGRect intertRect = [self.codeReader.previewLayer metadataOutputRectOfInterestForRect:self.codeReaderView.renderFrame];
-    self.codeReader.metadataOutput.rectOfInterest = intertRect;
+- (void)updateViewConstraints {
     
-    if ([self.view.constraints containsObject:self.tipsTConstraint]) {
-        [self.view removeConstraint:self.tipsTConstraint];
-    }
-    if (self.tipsLabel.superview) {
-        [self.view addConstraint:self.tipsTConstraint = [NSLayoutConstraint constraintWithItem:self.tipsLabel attribute:NSLayoutAttributeTop relatedBy:NSLayoutRelationEqual toItem:self.view attribute:NSLayoutAttributeTop multiplier:1.f constant:self.codeReaderView.renderFrame.size.height + self.codeReaderView.renderFrame.origin.y + 20]];
-    }
+    [super updateViewConstraints];
+    [self updateTipsLabelConstraint];
 }
 
 #pragma mark - Method
 
-- (void)setupUI {
+- (void)setupCodeReader {
     
-    self.view.backgroundColor = [UIColor whiteColor];
-    
-    /** 用户未开启相机授权, 不进行codeReader授权 */
-    if (![self hasAVAuthorization]) {
-        return;
-    }
-    
-    self.codeReader = [[XMNCodeReader alloc] init];
+    __weak typeof(*&self) wSelf = self;
+
     self.codeReaderView = [[XMNCodeReaderView alloc] init];
     self.codeReaderView.scaningLineColor = self.scaningLineColor;
     self.codeReaderView.scaningCornerColor = self.scaningCornerColor;
     self.codeReaderView.renderSize = self.renderSize;
     self.codeReaderView.centerOffsetPoint = self.centerOffsetPoint;
     
-    __weak typeof(*&self) wSelf = self;
-    
+    self.codeReader = [[XMNCodeReader alloc] init];
     [self.codeReader setCompletedBlock:^(NSString * result) {
         
         __strong typeof(*&wSelf) self = wSelf;
@@ -122,7 +126,33 @@
     
     [self.view.layer addSublayer:self.codeReader.previewLayer];
     [self.view addSubview:self.codeReaderView];
-    [self setupButton];
+
+    self.setuped = YES;
+    self.indicatorView ? [self.indicatorView removeFromSuperview] : nil;
+}
+
+- (void)setupReaderFrame {
+    
+    /** 重设预览界面的大小,避免大小错误 */
+    self.codeReaderView.frame = self.codeReader.previewLayer.frame = self.view.bounds;
+    
+    /** 增加设置扫描区域贡呢 */
+    CGRect intertRect = [self.codeReader.previewLayer metadataOutputRectOfInterestForRect:self.codeReaderView.renderFrame];
+    self.codeReader.metadataOutput.rectOfInterest = intertRect;
+    
+    if ([self.view.constraints containsObject:self.tipsTConstraint]) {
+        [self.view removeConstraint:self.tipsTConstraint];
+    }
+}
+
+- (void)updateTipsLabelConstraint {
+    
+    if ([self.view.constraints containsObject:self.tipsTConstraint]) {
+        [self.view removeConstraint:self.tipsTConstraint];
+    }
+    if (self.tipsLabel.superview) {
+        [self.view addConstraint:self.tipsTConstraint = [NSLayoutConstraint constraintWithItem:self.tipsLabel attribute:NSLayoutAttributeTop relatedBy:NSLayoutRelationEqual toItem:self.view attribute:NSLayoutAttributeTop multiplier:1.f constant:self.codeReaderView.renderFrame.size.height + self.codeReaderView.renderFrame.origin.y + 20]];
+    }
 }
 
 /**
@@ -142,7 +172,9 @@
             [AVCaptureDevice requestAccessForMediaType:AVMediaTypeVideo completionHandler:^(BOOL granted) {
                 __strong typeof(*&wSelf) self = wSelf;
                 if (granted) {
-                    [self setupUI];
+                    [self setupCodeReader];
+                    [self.view setNeedsLayout];
+                    [self startScaning];
                 }else {
                     if (self.presentingViewController) {
                         [self.presentingViewController dismissViewControllerAnimated:YES completion:nil];
@@ -156,9 +188,7 @@
         case AVAuthorizationStatusDenied:
         case AVAuthorizationStatusRestricted:
         {
-            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(.5f * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-                [self showAVAuthorizationAlert];
-            });
+            [self showAVAuthorizationAlert];
             return NO;
         }
         default:
@@ -338,6 +368,11 @@
     return _tipsLabel;
 }
 
+
+- (BOOL)isSetuped {
+    
+    return _setuped;
+}
 
 #pragma mark - Class Method
 

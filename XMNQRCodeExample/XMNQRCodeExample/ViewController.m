@@ -42,7 +42,7 @@
     /** 修改扫描框颜色 */
     codeReaderC.scaningCornerColor = [UIColor yellowColor];
 
-    [codeReaderC setCompletedBlock:^(NSString *scanResult){
+    [codeReaderC setCompletedBlock:^(NSString *scanResult){ 
         
         NSLog(@"this is scan result :%@",scanResult);
     }];
