@@ -37,6 +37,14 @@
 
 #pragma mark - Life Cycle
 
+- (instancetype)init {
+    
+    if (self = [super init]) {
+        
+        self.view.backgroundColor = [UIColor blackColor];
+    }
+    return self;
+}
 
 - (void)dealloc {
     
@@ -60,6 +68,7 @@
     [indicatorView startAnimating];
     indicatorView.center = self.view.center;
     [self.view addSubview:self.indicatorView = indicatorView];
+
 }
 
 #pragma mark - Override Method
@@ -70,7 +79,6 @@
     NSLog(@"%@ viewWillAppear",NSStringFromClass([self class]));
     if (self.isAutoScaning && self.isSetuped) {
         [self startScaning];
-        /** readerFrame 不正确 导致二维码无法扫描bug */
         [self setupReaderFrame];
     }
 }
@@ -88,17 +96,15 @@
     NSLog(@"%@ viewDidAppear",NSStringFromClass([self class]));
     if (!self.isSetuped && [self hasAVAuthorization]) {
         
-        [self setupButton];
         [self setupCodeReader];
         [self startScaning];
-        /** readerFrame 不正确 导致二维码无法扫描bug */
         [self setupReaderFrame];
     }
 }
 
-- (void)viewWillLayoutSubviews {
+- (void)viewDidLayoutSubviews {
     
-    [super viewWillLayoutSubviews];
+    [super viewDidLayoutSubviews];
     [self setupReaderFrame];
 }
 
@@ -120,7 +126,7 @@
     self.codeReaderView.renderSize = self.renderSize;
     self.codeReaderView.centerOffsetPoint = self.centerOffsetPoint;
     
-    self.codeReader = [[XMNCodeReader alloc] init];
+    self.codeReader = [[XMNCodeReader alloc] initWithMetadataObjectTypes:@[AVMetadataObjectTypeQRCode,AVMetadataObjectTypeAztecCode,AVMetadataObjectTypeInterleaved2of5Code,AVMetadataObjectTypeUPCECode,AVMetadataObjectTypeCode39Code,AVMetadataObjectTypeCode39Mod43Code,AVMetadataObjectTypeEAN13Code,AVMetadataObjectTypeEAN8Code,AVMetadataObjectTypeCode93Code,AVMetadataObjectTypeCode128Code,AVMetadataObjectTypePDF417Code,AVMetadataObjectTypeITF14Code,AVMetadataObjectTypeDataMatrixCode]];
     [self.codeReader setCompletedBlock:^(NSString * result) {
         
         __strong typeof(*&wSelf) self = wSelf;
@@ -133,19 +139,21 @@
 
     self.setuped = YES;
     self.indicatorView ? [self.indicatorView removeFromSuperview] : nil;
+    
+    [self.codeReaderView startScaleAnimation];
 }
 
 - (void)setupReaderFrame {
     
-    if (!self.codeReader || !self.codeReaderView) {
+    if (!self.codeReaderView || !self.codeReader) {
         return;
     }
     /** 重设预览界面的大小,避免大小错误 */
     self.codeReaderView.frame = self.codeReader.previewLayer.frame = self.view.bounds;
     
     /** 增加设置扫描区域贡呢 */
-    CGRect intertRect = [self.codeReader.previewLayer metadataOutputRectOfInterestForRect:self.codeReaderView.renderFrame];
-    self.codeReader.metadataOutput.rectOfInterest = intertRect;
+    CGRect interestRect = [self.codeReader.previewLayer metadataOutputRectOfInterestForRect:CGRectInset(self.codeReaderView.renderFrame, - 50, - 50)];
+    self.codeReader.metadataOutput.rectOfInterest = interestRect;
     
     if ([self.view.constraints containsObject:self.tipsTConstraint]) {
         [self.view removeConstraint:self.tipsTConstraint];
@@ -179,9 +187,15 @@
             [AVCaptureDevice requestAccessForMediaType:AVMediaTypeVideo completionHandler:^(BOOL granted) {
                 __strong typeof(*&wSelf) self = wSelf;
                 if (granted) {
-                    [self setupCodeReader];
-                    [self.view setNeedsLayout];
-                    [self startScaning];
+                    
+                    
+                    dispatch_async(dispatch_get_main_queue(), ^{
+                        __strong typeof(*&wSelf) self = wSelf;
+                        [self setupCodeReader];
+                        [self setupReaderFrame];
+                        [self startScaning];
+                    });
+
                 }else {
                     if (self.presentingViewController) {
                         [self.presentingViewController dismissViewControllerAnimated:YES completion:nil];

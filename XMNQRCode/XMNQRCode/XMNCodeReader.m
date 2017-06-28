@@ -161,6 +161,7 @@ didOutputMetadataObjects:(NSArray *)metadataObjects
             && [_metadataObjectTypes containsObject:current.type]) {
             
             NSString *scannedResult = [(AVMetadataMachineReadableCodeObject *) current stringValue];
+            AudioServicesPlaySystemSound(kSystemSoundID_Vibrate);
             self.completedBlock ? self.completedBlock(scannedResult) : nil;
         }
     }

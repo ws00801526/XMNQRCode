@@ -49,12 +49,6 @@ typedef NS_ENUM(NSUInteger, XMNCodeReaderMaskViewType) {
 @implementation XMNCodeReaderView
 @synthesize renderSize = _renderSize;
 
-static NSBundle *kXMNCodeBundle;
-
-+ (void)load {
-    kXMNCodeBundle = [NSBundle bundleWithPath:[[NSBundle bundleForClass:[XMNCodeReaderView class]] pathForResource:@"XMNQRCode" ofType:@"bundle"]];
-}
-
 - (instancetype)initWithRenderSize:(CGSize)renderSize {
     
     if (self = [super initWithFrame:CGRectZero]) {
@@ -114,6 +108,22 @@ static NSBundle *kXMNCodeBundle;
     [self startAnimation];
 }
 
+- (void)startScaleAnimation {
+    
+    self.lineView.hidden = YES;
+    self.cornerView.transform = CGAffineTransformMakeScale(.3f, .3f);
+    self.cornerImageView.transform = CGAffineTransformMakeScale(.3f, .3f);
+    
+    [UIView animateWithDuration:.3f animations:^{
+       
+        self.cornerView.transform = CGAffineTransformIdentity;
+        self.cornerImageView.transform = CGAffineTransformIdentity;
+    } completion:^(BOOL finished) {
+        self.lineView.hidden = NO;
+    }];
+    
+}
+
 #pragma mark - Method
 
 - (void)setupOverlayView {
@@ -141,17 +151,22 @@ static NSBundle *kXMNCodeBundle;
     cornerView.layer.borderColor = [UIColor whiteColor].CGColor;
     cornerView.layer.borderWidth = 1.f;
     cornerView.layer.masksToBounds = YES;
-    [self  addSubview:self.cornerView = cornerView];
+    [self addSubview:self.cornerView = cornerView];
     
+    NSBundle *bundle = [NSBundle bundleWithIdentifier:@"com.XMFraker.XMNQRCode"];
+    if (!bundle) {
+        bundle = [NSBundle mainBundle];
+    }
+    NSBundle *resourceBundle = [NSBundle bundleWithPath:[bundle pathForResource:@"XMNQRCode" ofType:@"bundle"]];
     NSString *scaningImageName = [NSString stringWithFormat:@"scaning_frame@%dx",(int)[UIScreen mainScreen].scale];
     
-    UIImageView *imageView = [[UIImageView alloc] initWithImage:[[UIImage imageWithContentsOfFile:[kXMNCodeBundle pathForResource:scaningImageName ofType:@"png"]] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate]];
+    UIImageView *imageView = [[UIImageView alloc] initWithImage:[[UIImage imageWithContentsOfFile:[resourceBundle pathForResource:scaningImageName ofType:@"png"]] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate]];
     imageView.tintColor = [UIColor redColor];
     imageView.frame = self.renderFrame;
     [self addSubview:self.cornerImageView = imageView];
     
     NSString *lineImageName = [NSString stringWithFormat:@"scaning_line@%dx",(int)[UIScreen mainScreen].scale];
-    UIImageView *lineImageView = [[UIImageView alloc] initWithImage:[[UIImage imageWithContentsOfFile:[kXMNCodeBundle pathForResource:lineImageName ofType:@"png"]] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate]];
+    UIImageView *lineImageView = [[UIImageView alloc] initWithImage:[[UIImage imageWithContentsOfFile:[resourceBundle pathForResource:lineImageName ofType:@"png"]] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate]];
     lineImageView.tintColor = [UIColor redColor];
     [lineImageView sizeToFit];
     lineImageView.frame = CGRectMake(self.renderFrame.origin.x, self.renderFrame.origin.y + 2, self.renderFrame.size.width, lineImageView.frame.size.height);

@@ -44,7 +44,7 @@
  *
  *  @param renderSize 扫描view的大小
  *
- *  @return XMNCodeReaderView实例
+ *  @return XMNCodeReaderView
  */
 - (instancetype)initWithRenderSize:(CGSize)renderSize NS_DESIGNATED_INITIALIZER;
 
@@ -56,5 +56,7 @@
  *  @brief 停止扫描动画
  */
 - (void)stopAnimation;
+
+- (void)startScaleAnimation;
 
 @end
