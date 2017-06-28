@@ -37,7 +37,7 @@
  *
  *  @param metadataObjectTypes 设置扫描的code类型
  *  @warning 默认支持QRCode
- *  @return
+ *  @return XMNCodeReader实例
  */
 - (instancetype _Nullable)initWithMetadataObjectTypes:(NSArray * _Nullable)metadataObjectTypes NS_DESIGNATED_INITIALIZER;
 
