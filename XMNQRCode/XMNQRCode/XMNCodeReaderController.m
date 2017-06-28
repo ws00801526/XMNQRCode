@@ -70,6 +70,8 @@
     NSLog(@"%@ viewWillAppear",NSStringFromClass([self class]));
     if (self.isAutoScaning && self.isSetuped) {
         [self startScaning];
+        /** readerFrame 不正确 导致二维码无法扫描bug */
+        [self setupReaderFrame];
     }
 }
 
@@ -89,6 +91,8 @@
         [self setupButton];
         [self setupCodeReader];
         [self startScaning];
+        /** readerFrame 不正确 导致二维码无法扫描bug */
+        [self setupReaderFrame];
     }
 }
 
@@ -133,6 +137,9 @@
 
 - (void)setupReaderFrame {
     
+    if (!self.codeReader || !self.codeReaderView) {
+        return;
+    }
     /** 重设预览界面的大小,避免大小错误 */
     self.codeReaderView.frame = self.codeReader.previewLayer.frame = self.view.bounds;
     
