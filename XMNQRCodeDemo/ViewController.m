@@ -10,7 +10,10 @@
 #import "XMNSampleController.h"
 #import "XMNPageSampleController.h"
 
-#import <XMNQRCode/XMNQRCodeBuilder.h>
+#import <XMNQRCode/XMNQRCode.h>
+#import <XMNQRCode/XMNQRCodeReaderController.h>
+
+#import <SafariServices/SafariServices.h>
 
 @interface ViewController ()
 
@@ -24,6 +27,18 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     // Do any additional setup after loading the view, typically from a nib.
+    self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc] initWithTitle:@"扫描" style:UIBarButtonItemStylePlain target:self action:@selector(handleScanQRCodeAction)];
+}
+
+- (void)handleScanQRCodeAction {
+    
+    __weak typeof(self) wSelf = self;
+    XMNQRCodeReaderController *rederC = [[XMNQRCodeReaderController alloc] initWithCompletionHandler:^(NSString *result) {
+        __strong typeof(wSelf) self = wSelf;
+        SFSafariViewController *controller = [[SFSafariViewController alloc] initWithURL:[NSURL URLWithString:result]];
+        [self.navigationController pushViewController:controller animated:YES];
+    }];
+    [self.navigationController pushViewController:rederC animated:YES];
 }
 
 #pragma mark - Private Methods

@@ -147,6 +147,7 @@
 				TargetAttributes = {
 					97B269981F0E014D0086E56E = {
 						CreatedOnToolsVersion = 8.3.3;
+						DevelopmentTeam = PZJP3CBE8G;
 						ProvisioningStyle = Automatic;
 					};
 				};
@@ -360,7 +361,9 @@
 			baseConfigurationReference = BE5350A6101A45B2331ABAD6 /* Pods-XMNQRCodeDemo.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				DEVELOPMENT_TEAM = PZJP3CBE8G;
 				INFOPLIST_FILE = XMNQRCodeDemo/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.xmfraker.XMNQRCodeDemo;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -372,7 +375,9 @@
 			baseConfigurationReference = F5BC772B4FA06B51C0F2665A /* Pods-XMNQRCodeDemo.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				DEVELOPMENT_TEAM = PZJP3CBE8G;
 				INFOPLIST_FILE = XMNQRCodeDemo/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.xmfraker.XMNQRCodeDemo;
 				PRODUCT_NAME = "$(TARGET_NAME)";
