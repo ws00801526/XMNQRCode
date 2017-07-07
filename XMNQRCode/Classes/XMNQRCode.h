@@ -16,9 +16,8 @@ FOUNDATION_EXPORT const unsigned char XMNQRCodeVersionString[];
 
 // In this header, you should import all the public headers of your framework using statements like #import <XMNQRCode/PublicHeader.h>
 
-
 FOUNDATION_EXPORT NSBundle * kXMNQRCodeBundle;
 
 #import <XMNQRCode/XMNQRCodeBuilder.h>
-#import <XMNQRCode/XMNCodeReaderController.h>
+#import <XMNQRCode/XMNQRCodeReaderController.h>
 
