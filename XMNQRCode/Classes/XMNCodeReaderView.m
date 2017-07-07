@@ -48,8 +48,15 @@ typedef NS_ENUM(NSUInteger, XMNCodeReaderMaskViewType) {
 
 @end
 
+NSBundle * kXMNQRCodeBundle;
+
 @implementation XMNCodeReaderView
 @synthesize renderSize = _renderSize;
+
++ (void)load {
+    
+    kXMNQRCodeBundle = [NSBundle bundleForClass:[self class]];
+}
 
 - (instancetype)initWithRenderSize:(CGSize)renderSize {
     
@@ -123,7 +130,6 @@ typedef NS_ENUM(NSUInteger, XMNCodeReaderMaskViewType) {
     } completion:^(BOOL finished) {
         self.lineView.hidden = NO;
     }];
-    
 }
 
 #pragma mark - Method

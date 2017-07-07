@@ -8,19 +8,6 @@
 
 #import <UIKit/UIKit.h>
 
-/// ========================================
-/// @name   相关尺寸宏
-/// ========================================
-
-#ifndef SCREEN_WIDTH
-    #define SCREEN_WIDTH ([UIScreen mainScreen].bounds.size.width)
-#endif
-
-#ifndef SCREEN_HEIGHT
-    #define SCREEN_HEIGHT ([UIScreen mainScreen].bounds.size.height)
-#endif
-
-
 @interface XMNCodeReaderView : UIView
 
 /** 渲染区域大小  默认 竖屏CGSizeMake(SCREEN_WIDTH-160, SCREEN_WIDTH-160)  横屏 CGSizeMake(SCREEN_HEIGHT-160, SCREEN_HEIGHT - 160)*/
@@ -57,6 +44,10 @@
  */
 - (void)stopAnimation;
 
+
+/**
+ 开启放大动画
+ */
 - (void)startScaleAnimation;
 
 @end
