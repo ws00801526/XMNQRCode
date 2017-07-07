@@ -8,7 +8,7 @@
 
 Pod::Spec.new do |s|
   s.name         = "XMNQRCode"
-  s.version      = "0.2.0"
+  s.version      = "0.2.1"
   s.summary      = "使用系统api实现二维码扫描功能,二维码图片识别功能, 增加二维码,条形码生成功能"
   s.homepage     = "https://github.com/ws00801526/XMNQRCode"
   s.license      = "MIT"
@@ -16,7 +16,7 @@ Pod::Spec.new do |s|
   s.platform     = :ios, "8.0"
   s.source       = { :git => "https://github.com/ws00801526/XMNQRCode.git", :tag => "#{s.version}" }
   s.source_files  = "XMNQRCode/Classes/*.{h,m}"
-  s.public_header_files = 'XMNQRCode/Classes/XMNQRCode.h','XMNQRCode/Classes/XMNQRCodeBuilder.h','XMNQRCode/Classes/XMNCodeReaderController.h'
+  s.public_header_files = 'XMNQRCode/Classes/XMNQRCode.h','XMNQRCode/Classes/XMNQRCodeBuilder.h','XMNQRCode/Classes/XMNQRCodeReaderController.h'
   s.resource  = "XMNQRCode/Resources/*.{png,jpg}"
   s.requires_arc = true
   s.ios.frameworks = 'CoreImage'
