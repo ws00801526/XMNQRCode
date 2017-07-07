@@ -15,7 +15,10 @@ Pod::Spec.new do |s|
   s.author       = { "XMFraker" => "3057600441@qq.com" }
   s.platform     = :ios, "8.0"
   s.source       = { :git => "https://github.com/ws00801526/XMNQRCode.git", :tag => "#{s.version}" }
-  s.source_files  = "XMNQRCode/XMNQRCode/*.{h,m}","XMNQRCode/XMNQRCode/View/*.{h,m}"
-  s.resource  = "XMNQRCode/XMNQRCode/XMNQRCode.bundle"
+  s.source_files  = "XMNQRCode/Classes/*.{h,m}"
+  s.public_header_files = 'XMNQRCode/Classes/XMNQRCode.h','XMNQRCode/Classes/XMNQRCodeBuilder.h','XMNQRCode/Classes/XMNCodeReaderController.h'
+
+  s.resource  = "XMNQRCode/Resources/*.{png,jpg}"
   s.requires_arc = true
+  s.ios.frameworks = 'CoreImage'
 end
