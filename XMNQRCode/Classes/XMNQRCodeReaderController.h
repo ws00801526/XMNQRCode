@@ -52,6 +52,14 @@ NS_ASSUME_NONNULL_BEGIN
  */
 - (void)stopScaning;
 
+/**
+ 识别图片中的二维码,并返回对应二维码数据
+ 
+ @param image 需要识别的二维码图片
+ @return 识别后的二维码数据
+ */
++ (NSString * __nullable)readQRCodeWithImage:(UIImage * __nonnull)image;
+
 @end
 
 NS_ASSUME_NONNULL_END

@@ -7,15 +7,19 @@
 //
 
 #import <XMNQRCode/XMNQRCodeReaderController.h>
+
+#import <ImageIO/ImageIO.h>
 #import <AVFoundation/AVFoundation.h>
 
 #import <XMNQRCode/XMNCodeReaderView.h>
+#import <XMNQRCode/XMNQRCodeTorch.h>
 
 
 @interface XMNQRCodeReaderController ()
 
 @property (strong, nonatomic) AVCaptureSession *session;
 @property (strong, nonatomic) XMNCodeReaderView *codeReaderView;
+@property (strong, nonatomic) XMNQRCodeTorch *torch;
 @property (strong, nonatomic)   UIActivityIndicatorView *indicatorView;
 
 @property (strong, nonatomic) AVCaptureVideoPreviewLayer *previewLayer;
@@ -35,7 +39,7 @@
  *
  *  @param on 是否打开闪光灯
  */
-- (void)switchFlash:(BOOL)on;
+- (BOOL)switchFlash:(BOOL)on;
 
 
 /**
@@ -120,6 +124,7 @@
     
     [super viewDidLayoutSubviews];
     [self updateReaderViewFrame];
+    self.torch.frame = CGRectMake(self.codeReaderView.renderFrame.origin.x + self.codeReaderView.renderFrame.size.width/2.f - 20.f, (self.codeReaderView.renderFrame.origin.y + self.codeReaderView.renderFrame.size.height) - 50.f, 50.f, 50.f);
 }
 
 - (void)viewWillAppear:(BOOL)animated {
@@ -189,6 +194,18 @@
     }
 }
 
+- (void)handleTorchAction {
+    
+    BOOL on = !self.torch.isOn;
+    if ([self switchFlash:on]) {
+        self.torch.on = on;
+    }else {
+#if DEBUG
+        NSLog(@"开启闪光灯失败");
+#endif
+    }
+}
+
 #pragma mark - Private Methods
 
 - (void)setup {
@@ -211,6 +228,11 @@
     
     self.codeReaderView.hidden = YES;
     [self.view addSubview:self.codeReaderView];
+    
+    self.torch = [[XMNQRCodeTorch alloc] initWithFrame:CGRectMake(0, 0, 40, 40)];
+    [self.torch addTarget:self action:@selector(handleTorchAction) forControlEvents:UIControlEventTouchUpInside];
+    self.torch.hidden = YES;
+    [self.view addSubview:self.torch];
 
     UIActivityIndicatorView *indicatorView = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleWhiteLarge];
     [indicatorView startAnimating];
@@ -254,11 +276,15 @@
     //设置代理 在主线程里刷新
     [output setMetadataObjectsDelegate:(id<AVCaptureMetadataOutputObjectsDelegate>)self queue:dispatch_get_main_queue()];
     
+    AVCaptureVideoDataOutput *output2 = [[AVCaptureVideoDataOutput alloc] init];
+    [output2 setSampleBufferDelegate:(id<AVCaptureVideoDataOutputSampleBufferDelegate>)self queue:dispatch_get_main_queue()];
+    
     //初始化链接对象
     self.session = [[AVCaptureSession alloc]init];
     [self.session setSessionPreset:AVCaptureSessionPresetHigh];
     [self.session addInput:input];
     [self.session addOutput:output];
+    [self.session addOutput:output2];
     
     //设置扫码支持的编码格式(如下设置条形码和二维码兼容)
     output.metadataObjectTypes = self.metadataObjectTypes;
@@ -363,10 +389,26 @@
     }
 }
 
+#pragma mark - Class Method
+
++ (NSString *)readQRCodeWithImage:(UIImage * __nonnull)image {
+    
+    if (!image) {
+        return nil;
+    }
+    CIContext *context = [CIContext contextWithOptions:nil];
+    CIDetector *detector = [CIDetector detectorOfType:CIDetectorTypeQRCode context:context options:@{CIDetectorAccuracy:CIDetectorAccuracyHigh}];
+    CIImage *ciImage = [CIImage imageWithCGImage:image.CGImage];
+    NSArray *features = [detector featuresInImage:ciImage];
+    CIQRCodeFeature *feature = [features firstObject];
+    NSString *result = feature.messageString;
+    return result;
+}
+
 @end
 
 
-@implementation XMNQRCodeReaderController (AVCaptureMetadataOutputObjectsDelegate)
+@implementation XMNQRCodeReaderController (XMNCaptureDelegate)
 
 - (void)captureOutput:(AVCaptureOutput *)captureOutput
 didOutputMetadataObjects:(NSArray<AVMetadataObject *> *)metadataObjects
@@ -381,6 +423,18 @@ didOutputMetadataObjects:(NSArray<AVMetadataObject *> *)metadataObjects
     }
 }
 
+- (void)captureOutput:(AVCaptureOutput *)captureOutput
+didOutputSampleBuffer:(CMSampleBufferRef)sampleBuffer
+       fromConnection:(AVCaptureConnection *)connection {
+
+    CFDictionaryRef metadataDict = CMCopyDictionaryOfAttachments(NULL,sampleBuffer, kCMAttachmentMode_ShouldPropagate);
+    NSDictionary *metadata = [[NSMutableDictionary alloc] initWithDictionary:(__bridge NSDictionary*)metadataDict];
+    CFRelease(metadataDict);
+    NSDictionary *exifMetadata = [[metadata objectForKey:(NSString *)kCGImagePropertyExifDictionary] copy];
+    float brightnessValue = [[exifMetadata objectForKey:(NSString *)kCGImagePropertyExifBrightnessValue] floatValue];
+    [self.torch updateBrightnessValue:brightnessValue];
+}
+
 @end
 
 
@@ -391,7 +445,7 @@ didOutputMetadataObjects:(NSArray<AVMetadataObject *> *)metadataObjects
  *
  *  @param on 是否打开闪光灯
  */
-- (void)switchFlash:(BOOL)on {
+- (BOOL)switchFlash:(BOOL)on {
     
     AVCaptureDeviceInput *currentInput = [self.session.inputs firstObject];
     AVCaptureDevice *currentDevice = currentInput.device;
@@ -400,14 +454,16 @@ didOutputMetadataObjects:(NSArray<AVMetadataObject *> *)metadataObjects
     BOOL locked = [currentDevice lockForConfiguration:&error];
     if (locked) {
         [self.session beginConfiguration];
-        [currentDevice setFlashMode:on ? AVCaptureFlashModeOn : AVCaptureFlashModeOff];
+//        [currentDevice setFlashMode:on ? AVCaptureFlashModeOn : AVCaptureFlashModeOff];
         [currentDevice setTorchMode:on ? AVCaptureTorchModeOn : AVCaptureTorchModeOff];
         [currentDevice unlockForConfiguration];
         [self.session commitConfiguration];
+        return YES;
     }else {
 #if DEBUG
         NSLog(@"lock device :%@ failed :%@ while switch flash",currentDevice, [error localizedDescription]);
 #endif
+        return NO;
     }
 }
 
