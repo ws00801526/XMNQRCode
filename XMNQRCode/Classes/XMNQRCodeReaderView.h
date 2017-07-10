@@ -1,5 +1,5 @@
 //
-//  XMNCodeReaderView.h
+//  XMNQRCodeReaderView.h
 //  XMNQRCode
 //
 //  Created by XMFraker on 16/8/19.
@@ -8,7 +8,7 @@
 
 #import <UIKit/UIKit.h>
 
-@interface XMNCodeReaderView : UIView
+@interface XMNQRCodeReaderView : UIView
 
 /** 渲染区域大小  默认 竖屏CGSizeMake(SCREEN_WIDTH-160, SCREEN_WIDTH-160)  横屏 CGSizeMake(SCREEN_HEIGHT-160, SCREEN_HEIGHT - 160)*/
 @property (assign, nonatomic) CGSize renderSize;
@@ -31,7 +31,7 @@
  *
  *  @param renderSize 扫描view的大小
  *
- *  @return XMNCodeReaderView
+ *  @return XMNQRCodeReaderView
  */
 - (instancetype)initWithRenderSize:(CGSize)renderSize NS_DESIGNATED_INITIALIZER;
 

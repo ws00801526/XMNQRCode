@@ -1,5 +1,5 @@
 //
-//  XMNCodeReaderView.m
+//  XMNQRCodeReaderView.m
 //  XMNQRCode
 //
 //  Created by XMFraker on 16/8/19.
@@ -8,7 +8,7 @@
 
 
 #import <XMNQRCode/XMNQRCode.h>
-#import <XMNQRCode/XMNCodeReaderView.h>
+#import <XMNQRCode/XMNQRCodeReaderView.h>
 
 typedef NS_ENUM(NSUInteger, XMNCodeReaderMaskViewType) {
     XMNCodeReaderMaskViewTypeTop,
@@ -38,7 +38,7 @@ typedef NS_ENUM(NSUInteger, XMNCodeReaderMaskViewType) {
 @end
 
 
-@interface XMNCodeReaderView ()
+@interface XMNQRCodeReaderView ()
 
 @property (weak, nonatomic)   UIImageView *lineView;
 @property (weak, nonatomic)   UIImageView *cornerImageView;
@@ -50,7 +50,7 @@ typedef NS_ENUM(NSUInteger, XMNCodeReaderMaskViewType) {
 
 NSBundle * kXMNQRCodeBundle;
 
-@implementation XMNCodeReaderView
+@implementation XMNQRCodeReaderView
 @synthesize renderSize = _renderSize;
 
 + (void)load {
