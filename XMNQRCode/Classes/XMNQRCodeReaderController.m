@@ -402,7 +402,20 @@
     NSArray *features = [detector featuresInImage:ciImage];
     CIQRCodeFeature *feature = [features firstObject];
     NSString *result = feature.messageString;
+    
+    /** 增加识别完成后震动提示 */
+    [XMNQRCodeReaderController playingSystemVibrate];
+
     return result;
+}
+
++ (void)playingSystemVibrate {
+    
+    if ([[UIDevice currentDevice].systemVersion floatValue] >= 9.0f) {
+        AudioServicesPlaySystemSoundWithCompletion(kSystemSoundID_Vibrate, NULL);
+    }else {
+        AudioServicesPlaySystemSound(kSystemSoundID_Vibrate);
+    }
 }
 
 @end
@@ -418,12 +431,8 @@ didOutputMetadataObjects:(NSArray<AVMetadataObject *> *)metadataObjects
     if (codeObject && [codeObject isKindOfClass:[AVMetadataMachineReadableCodeObject class]] && [(AVMetadataMachineReadableCodeObject *)codeObject stringValue]) {
         [self stopScaning];
 
-        if ([[UIDevice currentDevice].systemVersion floatValue] >= 9.0f) {
-            AudioServicesPlaySystemSoundWithCompletion(kSystemSoundID_Vibrate, NULL);
-        }else {
-            AudioServicesPlaySystemSound(kSystemSoundID_Vibrate);
-        }
-        
+        /** 增加识别完成后震动提示 */
+        [XMNQRCodeReaderController playingSystemVibrate];
         self.completionHandler ? self.completionHandler([(AVMetadataMachineReadableCodeObject *)codeObject stringValue]) : nil;
     }else {
         NSLog(@"scan code does not has result");
