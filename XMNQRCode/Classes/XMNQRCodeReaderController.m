@@ -11,14 +11,14 @@
 #import <ImageIO/ImageIO.h>
 #import <AVFoundation/AVFoundation.h>
 
-#import <XMNQRCode/XMNCodeReaderView.h>
+#import <XMNQRCode/XMNQRCodeReaderView.h>
 #import <XMNQRCode/XMNQRCodeTorch.h>
 
 
 @interface XMNQRCodeReaderController ()
 
 @property (strong, nonatomic) AVCaptureSession *session;
-@property (strong, nonatomic) XMNCodeReaderView *codeReaderView;
+@property (strong, nonatomic) XMNQRCodeReaderView *codeReaderView;
 @property (strong, nonatomic) XMNQRCodeTorch *torch;
 @property (strong, nonatomic)   UIActivityIndicatorView *indicatorView;
 
@@ -365,10 +365,10 @@
 
 #pragma mark - Getter
 
-- (XMNCodeReaderView *)codeReaderView {
+- (XMNQRCodeReaderView *)codeReaderView {
     
     if (!_codeReaderView) {
-        _codeReaderView = [[XMNCodeReaderView alloc] init];
+        _codeReaderView = [[XMNQRCodeReaderView alloc] init];
     }
     return _codeReaderView;
 }
