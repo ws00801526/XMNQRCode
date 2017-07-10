@@ -17,8 +17,6 @@
 @property (assign, nonatomic, getter=isOn) BOOL on;
 /** 当前光亮度 */
 @property (assign, nonatomic, readonly) CGFloat brightness;
-/** 手电筒状态发生改变 */
-@property (copy, nonatomic)   void(^torchStateDidChangedHandler)(BOOL on);
 
 /**
  更新brightnessValue

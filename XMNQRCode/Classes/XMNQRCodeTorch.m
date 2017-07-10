@@ -53,7 +53,6 @@
 - (void)updateBrightnessValue:(CGFloat)brightnessValue {
     
     if (ABS((brightnessValue - self.brightness)) < .5f) {
-        NSLog(@"亮度变化太小, 不处理");
         return;
     }
     
@@ -163,4 +162,5 @@
  
     return _first;
 }
+
 @end
