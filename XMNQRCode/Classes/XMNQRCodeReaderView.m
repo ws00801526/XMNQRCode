@@ -79,16 +79,10 @@ NSBundle * kXMNQRCodeBundle;
     return [self initWithRenderSize:CGSizeZero];
 }
 
-- (void)dealloc {
-    
-    NSLog(@"%@  dealloc",NSStringFromClass([self class]));
-}
-
 - (void)layoutSubviews {
     
     [super layoutSubviews];
     
-    NSLog(@" this is render frame :%@",NSStringFromCGRect(self.renderFrame));
     [self.maskViews enumerateObjectsUsingBlock:^(XMNCodeReaderMaskView * _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
        
         switch (obj.tag) {
@@ -224,7 +218,6 @@ NSBundle * kXMNQRCodeBundle;
     if ([animation.toValue integerValue] - [animation.fromValue integerValue] <= 10) {
         return;
     }
-    NSLog(@"this is animation :%@ :%@",animation.fromValue,animation.toValue);
 }
 
 

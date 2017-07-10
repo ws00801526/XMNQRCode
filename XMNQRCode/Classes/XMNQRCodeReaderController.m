@@ -417,6 +417,13 @@ didOutputMetadataObjects:(NSArray<AVMetadataObject *> *)metadataObjects
     AVMetadataObject *codeObject = [metadataObjects firstObject];
     if (codeObject && [codeObject isKindOfClass:[AVMetadataMachineReadableCodeObject class]] && [(AVMetadataMachineReadableCodeObject *)codeObject stringValue]) {
         [self stopScaning];
+
+        if ([[UIDevice currentDevice].systemVersion floatValue] >= 9.0f) {
+            AudioServicesPlaySystemSoundWithCompletion(kSystemSoundID_Vibrate, NULL);
+        }else {
+            AudioServicesPlaySystemSound(kSystemSoundID_Vibrate);
+        }
+        
         self.completionHandler ? self.completionHandler([(AVMetadataMachineReadableCodeObject *)codeObject stringValue]) : nil;
     }else {
         NSLog(@"scan code does not has result");
@@ -447,53 +454,54 @@ didOutputSampleBuffer:(CMSampleBufferRef)sampleBuffer
  */
 - (BOOL)switchFlash:(BOOL)on {
     
-    AVCaptureDeviceInput *currentInput = [self.session.inputs firstObject];
-    AVCaptureDevice *currentDevice = currentInput.device;
+    return [XMNQRCodeReaderController safeUpdateConfigurationForDevice:[[self.session.inputs firstObject] device] forSession:self.session
+                                               operationHandler:^(AVCaptureDevice *device) {
+                                                   
+                                                   [device setTorchMode:on ? AVCaptureTorchModeOn : AVCaptureTorchModeOff];
+                                               }];
+}
+
+
+/**
+ 改变摄像头曝光状态
+
+ @param point 摄像头聚焦的点
+ */
+- (void)focusCameraOnPoint:(CGPoint)point {
+    
+    [XMNQRCodeReaderController safeUpdateConfigurationForDevice:[[self.session.inputs firstObject] device]
+                                                     forSession:self.session
+     
+                                               operationHandler:^(AVCaptureDevice *device) {
+                                                  
+                                                   if ([device isFocusPointOfInterestSupported]) {
+                                                       [device setFocusPointOfInterest:point];
+                                                   }
+                                                   
+                                                   if ([device isExposureModeSupported:AVCaptureExposureModeAutoExpose]) {
+                                                       [device setExposureMode:AVCaptureExposureModeAutoExpose];
+                                                   }
+                                               }];
+}
+
+
++ (BOOL)safeUpdateConfigurationForDevice:(AVCaptureDevice *)device
+                              forSession:(AVCaptureSession *)session
+                        operationHandler:(void(^)(AVCaptureDevice * device))operationHandler {
     
     NSError *error;
-    BOOL locked = [currentDevice lockForConfiguration:&error];
-    if (locked) {
-        [self.session beginConfiguration];
-//        [currentDevice setFlashMode:on ? AVCaptureFlashModeOn : AVCaptureFlashModeOff];
-        [currentDevice setTorchMode:on ? AVCaptureTorchModeOn : AVCaptureTorchModeOff];
-        [currentDevice unlockForConfiguration];
-        [self.session commitConfiguration];
+    BOOL locked = [device lockForConfiguration:&error];
+    if (locked && !error) {
+        [session beginConfiguration];
+        operationHandler(device);
+        [session commitConfiguration];
+        [device unlockForConfiguration];
         return YES;
     }else {
 #if DEBUG
-        NSLog(@"lock device :%@ failed :%@ while switch flash",currentDevice, [error localizedDescription]);
+        NSLog(@"lock device :%@ failed :%@",device, [error localizedDescription]);
 #endif
         return NO;
-    }
-}
-
-- (void)focusCameraOnPoint:(CGPoint)point {
-    
-    AVCaptureDeviceInput *currentInput = [self.session.inputs firstObject];
-    AVCaptureDevice *currentDevice = currentInput.device;
-    
-    NSError *error;
-    BOOL locked = [currentDevice lockForConfiguration:&error];
-    if (locked) {
-        [self.session beginConfiguration];
-        /** 修改聚焦点 */
-        if ([currentDevice isFocusPointOfInterestSupported]) {
-            [currentDevice setFocusPointOfInterest:point];
-        }
-        /** 修改聚焦模式 */
-//        if ([currentDevice isFocusModeSupported:AVCaptureFocusModeContinuousAutoFocus]) {
-//            [currentDevice setFocusMode:AVCaptureFocusModeContinuousAutoFocus];
-//        }
-        /** 修改曝光度 */
-        if ([currentDevice isExposureModeSupported:AVCaptureExposureModeAutoExpose]) {
-            [currentDevice setExposureMode:AVCaptureExposureModeAutoExpose];
-        }
-        [currentDevice unlockForConfiguration];
-        [self.session commitConfiguration];
-    }else {
-#if DEBUG
-        NSLog(@"lock device :%@ failed :%@ while focus camert",currentDevice, [error localizedDescription]);
-#endif
     }
 }
 
