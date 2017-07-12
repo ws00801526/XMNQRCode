@@ -282,9 +282,19 @@
     //初始化链接对象
     self.session = [[AVCaptureSession alloc]init];
     [self.session setSessionPreset:AVCaptureSessionPresetHigh];
-    [self.session addInput:input];
-    [self.session addOutput:output];
-    [self.session addOutput:output2];
+    
+#if TARGET_IPHONE_SIMULATOR
+    
+#else
+    if (input) {
+        [self.session addInput:input];
+    }
+    if (output) {
+        [self.session addOutput:output];
+    }
+    if (output2) {
+        [self.session addOutput:output2];
+    }
     
     //设置扫码支持的编码格式(如下设置条形码和二维码兼容)
     output.metadataObjectTypes = self.metadataObjectTypes;
@@ -294,6 +304,7 @@
     layer.frame = self.view.layer.bounds;
     [self.view.layer insertSublayer:self.previewLayer = layer atIndex:0];
     self.setuped = YES;
+#endif
 }
 
 - (void)updateReaderViewFrame {
