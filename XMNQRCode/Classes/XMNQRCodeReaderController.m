@@ -149,7 +149,6 @@ typedef NS_ENUM(NSUInteger, XMNQRCodeScanState) {
     NSLog(@"%@ is %@ing", self, NSStringFromSelector(_cmd));
 #endif
     [self stopScaning];
-    [self.navigationController setNavigationBarHidden:NO animated:animated];
 }
 
 - (void)touchesEnded:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event  {
@@ -197,6 +196,7 @@ typedef NS_ENUM(NSUInteger, XMNQRCodeScanState) {
 
 - (void)stopScaning {
 
+    self.tipsLabel.alpha = .0f;
     [self.codeReaderView stopAnimation];
 #if !TARGET_IPHONE_SIMULATOR
     [self.session stopRunning];
@@ -242,7 +242,6 @@ typedef NS_ENUM(NSUInteger, XMNQRCodeScanState) {
 #endif
         }];
     }
-
 }
 
 - (void)handleAblumAction {

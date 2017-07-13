@@ -58,9 +58,10 @@ FOUNDATION_EXTERN NSBundle * kXMNQRCodeBundle;
     
     {/** 初始化scanButton */
         self.scanButton = [UIButton buttonWithType:UIButtonTypeCustom];
-        [self.scanButton setImage:[UIImage imageNamed:@"scaning_scan_button" inBundle:kXMNQRCodeBundle compatibleWithTraitCollection:nil] forState:UIControlStateNormal];
+        [self.scanButton setImage:[UIImage imageNamed:@"scaning_scan_button" inBundle:kXMNQRCodeBundle compatibleWithTraitCollection:nil] forState:UIControlStateDisabled];
         self.scanButton.contentMode = UIViewContentModeCenter;
         self.scanButton.frame = CGRectMake(self.bounds.size.width/2.f, 0, self.bounds.size.width/2.f, self.bounds.size.height);
+        self.scanButton.enabled = NO;
         [self addSubview:self.scanButton];
     }
 

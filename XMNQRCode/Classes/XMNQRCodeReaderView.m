@@ -109,7 +109,7 @@ NSBundle * kXMNQRCodeBundle;
     self.cornerImageView.frame = CGRectMake(0, 0, self.renderSize.width, self.renderSize.height);
     self.cornerImageView.center = self.renderCenter;
     
-    self.lineView.frame = CGRectMake(self.renderFrame.origin.x, self.renderFrame.origin.y + 2, self.renderFrame.size.width, self.lineView.frame.size.height);
+    self.lineView.frame = CGRectMake(self.renderFrame.origin.x + self.renderOffset.horizontal, self.renderFrame.origin.y + 2, self.renderFrame.size.width - 2 * self.renderOffset.horizontal, self.lineView.frame.size.height);
     
     [self startAnimation];
 }
