@@ -35,8 +35,14 @@
     __weak typeof(self) wSelf = self;
     XMNQRCodeReaderController *rederC = [[XMNQRCodeReaderController alloc] initWithCompletionHandler:^(NSString *result) {
         __strong typeof(wSelf) self = wSelf;
-        SFSafariViewController *controller = [[SFSafariViewController alloc] initWithURL:[NSURL URLWithString:result]];
-        [self.navigationController pushViewController:controller animated:YES];
+        if (![result hasPrefix:@"http"]) {
+            
+            NSLog(@"scan success :%@",result);
+            [self.navigationController popViewControllerAnimated:YES];
+        }else {
+            SFSafariViewController *controller = [[SFSafariViewController alloc] initWithURL:[NSURL URLWithString:result]];
+            [self.navigationController pushViewController:controller animated:YES];
+        }
     }];
     [self.navigationController pushViewController:rederC animated:YES];
 }

@@ -51,7 +51,7 @@
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="3AK-7f-DOL">
-                                <rect key="frame" x="37.5" y="183.5" width="300" height="300"/>
+                                <rect key="frame" x="37.5" y="83.5" width="300" height="300"/>
                                 <constraints>
                                     <constraint firstAttribute="width" constant="300" id="2Mn-YV-Nge"/>
                                     <constraint firstAttribute="height" constant="300" id="GqN-Hn-3gv"/>
@@ -69,7 +69,7 @@
                             <constraint firstItem="cGh-l1-yxa" firstAttribute="leading" secondItem="nvU-Ri-zeH" secondAttribute="leading" constant="30" id="ARe-wU-gYg"/>
                             <constraint firstItem="AyL-O5-AAP" firstAttribute="top" secondItem="cGh-l1-yxa" secondAttribute="bottom" constant="30" id="NO1-VG-hQo"/>
                             <constraint firstAttribute="trailing" secondItem="cGh-l1-yxa" secondAttribute="trailing" constant="30" id="keV-kx-twq"/>
-                            <constraint firstItem="3AK-7f-DOL" firstAttribute="centerY" secondItem="nvU-Ri-zeH" secondAttribute="centerY" id="nch-uN-lCp"/>
+                            <constraint firstItem="3AK-7f-DOL" firstAttribute="centerY" secondItem="nvU-Ri-zeH" secondAttribute="centerY" constant="-100" id="nch-uN-lCp"/>
                             <constraint firstItem="3AK-7f-DOL" firstAttribute="centerX" secondItem="nvU-Ri-zeH" secondAttribute="centerX" id="ngy-v5-aR2"/>
                         </constraints>
                     </view>
