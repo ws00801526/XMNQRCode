@@ -207,11 +207,12 @@
     if ([[UIDevice currentDevice].systemVersion floatValue] >= 8.0) {
         // 注意生成条形码的编码方式
         NSData *data = [info dataUsingEncoding:NSASCIIStringEncoding];
+
         CIFilter *filter = [CIFilter filterWithName:@"CICode128BarcodeGenerator"];
         [filter setDefaults];
         [filter setValuesForKeysWithDictionary:@{
-                                                 @"inputMessage":data ? : [NSNull null],
-                                                 @"inputQuietSpace" : @0,
+                                                 @"inputMessage": data ? : [NSNull null],
+                                                 @"inputQuietSpace" : @1,
                                                  }];
         return [[XMNCIFilter alloc] initWithCIImage:filter.outputImage];
     }else{

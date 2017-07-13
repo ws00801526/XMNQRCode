@@ -30,7 +30,7 @@ typedef NS_ENUM(NSUInteger, XMNCodeReaderMaskViewType) {
     
     if (self = [super initWithFrame:frame]) {
         
-        self.backgroundColor = [UIColor colorWithRed:0.f green:0.f blue:0.f alpha:.5f];
+        self.backgroundColor = [UIColor colorWithRed:0.f green:0.f blue:0.f alpha:.6f];
     }
     return self;
 }
@@ -61,9 +61,10 @@ NSBundle * kXMNQRCodeBundle;
 - (instancetype)initWithRenderSize:(CGSize)renderSize {
     
     if (self = [super initWithFrame:CGRectZero]) {
-        
+
         self.scaningLineColor = self.scaningCornerColor = [UIColor redColor];
         self.renderSize = renderSize;
+        self.renderOffset = UIOffsetMake(3.f, 3.f);
         [self setupOverlayView];
     }
     return self;
@@ -87,22 +88,24 @@ NSBundle * kXMNQRCodeBundle;
        
         switch (obj.tag) {
             case XMNCodeReaderMaskViewTypeTop:
-                obj.frame = CGRectMake(0, 0, self.bounds.size.width, CGRectGetMinY(self.renderFrame));
+                obj.frame = CGRectMake(0, 0, self.bounds.size.width, CGRectGetMinY(self.renderFrame) + self.renderOffset.vertical);
                 break;
             case XMNCodeReaderMaskViewTypeLeft:
-                obj.frame = CGRectMake(0, self.renderFrame.origin.y, self.renderFrame.origin.x, self.renderFrame.size.height);
+                obj.frame = CGRectMake(0, self.renderFrame.origin.y + self.renderOffset.vertical, self.renderFrame.origin.x + self.renderOffset.horizontal, self.renderFrame.size.height - self.renderOffset.vertical*2);
                 break;
             case XMNCodeReaderMaskViewTypeRight:
-                obj.frame = CGRectMake(CGRectGetMaxX(self.renderFrame), self.renderFrame.origin.y, self.bounds.size.width - CGRectGetMaxX(self.renderFrame), self.renderFrame.size.height);
+                obj.frame = CGRectMake(CGRectGetMaxX(self.renderFrame) - self.renderOffset.horizontal, self.renderFrame.origin.y + self.renderOffset.vertical, self.bounds.size.width - CGRectGetMaxX(self.renderFrame) + self.renderOffset.horizontal, self.renderFrame.size.height - self.renderOffset.vertical * 2);
                 break;
             case XMNCodeReaderMaskViewTypeBottom:
-                obj.frame = CGRectMake(0, CGRectGetMaxY(self.renderFrame), self.bounds.size.width, self.bounds.size.height - CGRectGetMaxY(self.renderFrame));
+                obj.frame = CGRectMake(0, CGRectGetMaxY(self.renderFrame) - self.renderOffset.vertical, self.bounds.size.width, self.bounds.size.height - CGRectGetMaxY(self.renderFrame) + self.renderOffset.vertical);
                 break;
         }
     }];
     
-    self.cornerView.frame = CGRectInset(CGRectMake(0, 0, self.renderSize.width, self.renderSize.height), 0, 0);
+    /** 更新cornerView.frame.size */
+    self.cornerView.frame = CGRectMake(0, 0, self.renderSize.width - self.renderOffset.horizontal * 2, self.renderSize.height - self.renderOffset.vertical * 2);
     self.cornerView.center = self.renderCenter;
+    
     self.cornerImageView.frame = CGRectMake(0, 0, self.renderSize.width, self.renderSize.height);
     self.cornerImageView.center = self.renderCenter;
     
@@ -148,27 +151,20 @@ NSBundle * kXMNQRCodeBundle;
     
     self.maskViews = @[maskTopView,maskLeftView,maskRightView,maskBottomView];
     
-    UIView *cornerView = [[UIView alloc] initWithFrame:CGRectInset(self.renderFrame, 3, 3)];
+    UIView *cornerView = [[UIView alloc] initWithFrame:CGRectInset(self.renderFrame, 0, 0)];
     cornerView.backgroundColor = [UIColor clearColor];
     cornerView.layer.borderColor = [UIColor whiteColor].CGColor;
-    cornerView.layer.borderWidth = 1.f;
+    cornerView.layer.borderWidth = CGFLOAT_MIN;
     cornerView.layer.masksToBounds = YES;
     [self addSubview:self.cornerView = cornerView];
     
-    NSBundle *bundle = [NSBundle bundleWithIdentifier:@"com.XMFraker.XMNQRCode"];
-    if (!bundle) {
-        bundle = [NSBundle mainBundle];
-    }
-
     NSString *scaningImageName = [NSString stringWithFormat:@"scaning_frame@%dx",(int)[UIScreen mainScreen].scale];
     UIImageView *imageView = [[UIImageView alloc] initWithImage:[[UIImage imageWithContentsOfFile:[kXMNQRCodeBundle pathForResource:scaningImageName ofType:@"png"]] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate]];
-    imageView.tintColor = [UIColor redColor];
     imageView.frame = self.renderFrame;
     [self addSubview:self.cornerImageView = imageView];
     
     NSString *lineImageName = [NSString stringWithFormat:@"scaning_line@%dx",(int)[UIScreen mainScreen].scale];
     UIImageView *lineImageView = [[UIImageView alloc] initWithImage:[[UIImage imageWithContentsOfFile:[kXMNQRCodeBundle pathForResource:lineImageName ofType:@"png"]] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate]];
-    lineImageView.tintColor = [UIColor redColor];
     [lineImageView sizeToFit];
     lineImageView.frame = CGRectMake(self.renderFrame.origin.x, self.renderFrame.origin.y + 2, self.renderFrame.size.width, lineImageView.frame.size.height);
     [self addSubview:self.lineView = lineImageView];

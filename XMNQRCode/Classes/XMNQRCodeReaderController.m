@@ -12,14 +12,25 @@
 #import <AVFoundation/AVFoundation.h>
 
 #import <XMNQRCode/XMNQRCodeReaderView.h>
+#import <XMNQRCode/XMNQRCodeTopView.h>
 #import <XMNQRCode/XMNQRCodeTorch.h>
+#import <XMNQRCode/XMNQRCodeBottomView.h>
 
+typedef NS_ENUM(NSUInteger, XMNQRCodeScanState) {
+    XMNQRCodeScanStateDefault = 0,
+    XMNQRCodeScanStateUnreconized,
+    XMNQRCodeScanStateUnreconizedImage,
+    XMNQRCodeScanStateNeedReport,
+};
 
 @interface XMNQRCodeReaderController ()
 
 @property (strong, nonatomic) AVCaptureSession *session;
 @property (strong, nonatomic) XMNQRCodeReaderView *codeReaderView;
+@property (strong, nonatomic) XMNQRCodeTopView *topView;
+@property (strong, nonatomic) XMNQRCodeBottomView *bottomView;
 @property (strong, nonatomic) XMNQRCodeTorch *torch;
+@property (strong, nonatomic) UILabel *tipsLabel;
 @property (strong, nonatomic)   UIActivityIndicatorView *indicatorView;
 
 @property (strong, nonatomic) AVCaptureVideoPreviewLayer *previewLayer;
@@ -49,6 +60,7 @@
  */
 - (void)focusCameraOnPoint:(CGPoint)point;
 
+- (NSAttributedString *)tipsForState:(XMNQRCodeScanState)state;
 @end
 
 @implementation XMNQRCodeReaderController
@@ -60,16 +72,6 @@
 #pragma mark - Life Cycle
 
 - (instancetype)init {
-    
-    return [self initWithMetadataObjectTypes:nil completionHandler:nil];
-}
-
-- (instancetype)initWithCoder:(NSCoder *)aDecoder {
-    
-    return [self initWithMetadataObjectTypes:nil completionHandler:nil];
-}
-
-- (instancetype)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil {
     
     return [self initWithMetadataObjectTypes:nil completionHandler:nil];
 }
@@ -124,7 +126,8 @@
     
     [super viewDidLayoutSubviews];
     [self updateReaderViewFrame];
-    self.torch.frame = CGRectMake(self.codeReaderView.renderFrame.origin.x + self.codeReaderView.renderFrame.size.width/2.f - 20.f, (self.codeReaderView.renderFrame.origin.y + self.codeReaderView.renderFrame.size.height) - 50.f, 50.f, 50.f);
+    self.torch.frame = CGRectMake(self.codeReaderView.renderFrame.origin.x + self.codeReaderView.renderFrame.size.width/2.f - 20.f, (self.codeReaderView.renderFrame.origin.y + self.codeReaderView.renderFrame.size.height) + 20.f, 50.f, 50.f);
+    self.tipsLabel.frame = CGRectMake(self.codeReaderView.renderFrame.origin.x, self.codeReaderView.renderFrame.origin.y - 50.f, self.codeReaderView.renderFrame.size.width, 50.f);
 }
 
 - (void)viewWillAppear:(BOOL)animated {
@@ -136,6 +139,7 @@
     if (self.setuped) {
         [self startScaning];
     }
+    [self.navigationController setNavigationBarHidden:YES animated:animated];
 }
 
 - (void)viewWillDisappear:(BOOL)animated {
@@ -145,6 +149,7 @@
     NSLog(@"%@ is %@ing", self, NSStringFromSelector(_cmd));
 #endif
     [self stopScaning];
+    [self.navigationController setNavigationBarHidden:NO animated:animated];
 }
 
 - (void)touchesEnded:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event  {
@@ -153,10 +158,16 @@
     [self focusCameraOnPoint:touchPoint];
 }
 
+- (UIStatusBarStyle)preferredStatusBarStyle {
+    
+    return UIStatusBarStyleLightContent;
+}
+
 #pragma mark - Public Methods
 
 - (void)startScaning {
     
+#if !TARGET_IPHONE_SIMULATOR
     if (self.session.isRunning) {
         return;
     }
@@ -166,6 +177,9 @@
     }
     
     [self.session startRunning];
+#else
+    self.setuped = YES;
+#endif
     
     if (self.indicatorView) {
         [self.indicatorView stopAnimating];
@@ -175,12 +189,19 @@
     self.codeReaderView.hidden = NO;
     [self.codeReaderView startScaleAnimation];
     [self.codeReaderView startAnimation];
+    
+    /** 设置超时后, 提示二维码无法扫描提示label */
+    [self performSelector:@selector(showTips:animated:) withObject:[self tipsForState:XMNQRCodeScanStateUnreconized] afterDelay:5.f];
+    [self performSelector:@selector(showTips:animated:) withObject:[self tipsForState:XMNQRCodeScanStateNeedReport] afterDelay:10.f];
 }
 
 - (void)stopScaning {
-    
+
     [self.codeReaderView stopAnimation];
+#if !TARGET_IPHONE_SIMULATOR
     [self.session stopRunning];
+#endif
+    [NSObject cancelPreviousPerformRequestsWithTarget:self];
 }
 
 #pragma mark - EVENTS
@@ -206,32 +227,86 @@
     }
 }
 
+- (void)handleBackAction {
+    
+    [self stopScaning];
+    [self.navigationController popViewControllerAnimated:YES];
+}
+
+- (void)handleOtherAction {
+    
+    if (self.delegate && [self.delegate respondsToSelector:@selector(codeReaderControllerShowOtherController:completionHandler:)]) {
+        [self.delegate codeReaderControllerShowOtherController:self completionHandler:^{
+#if DEBUG
+            NSLog(@"report completed");
+#endif
+        }];
+    }
+
+}
+
+- (void)handleAblumAction {
+    
+    if (self.delegate && [self.delegate respondsToSelector:@selector(codeReaderControllerShowAblumController:completionHandler:)]) {
+        
+        __weak typeof(self) wSelf = self;
+        [self.delegate codeReaderControllerShowAblumController:self
+                                             completionHandler:^(UIImage * _Nonnull image) {
+                                                 __strong typeof(wSelf) self = wSelf;
+                                                 if (image) {
+                                                     NSString *result = [XMNQRCodeReaderController readQRCodeWithImage:image];
+                                                     if (result && result.length) {
+                                                         self.completionHandler ? self.completionHandler(result) : nil;
+                                                     }else {
+                                                         [self showTips:[self tipsForState:XMNQRCodeScanStateUnreconizedImage] animated:YES];
+#if DEBUG
+                                                         NSLog(@"识别图片二维码失败, 请重新选择");
+#endif
+                                                     }
+                                                 }
+                                             }];
+    }
+}
+
+- (void)handleReportAction {
+    
+    if (self.delegate && [self.delegate respondsToSelector:@selector(codeReaderControllerShowReportController:completionHandler:)]) {
+        [self.delegate codeReaderControllerShowReportController:self completionHandler:^{
+#if DEBUG
+            NSLog(@"report completed");
+#endif
+        }];
+    }
+}
+
 #pragma mark - Private Methods
 
 - (void)setup {
     
-    self.lineColor = self.cornerColor = [UIColor colorWithRed:36/255.f green:159/255.f blue:216/255.f alpha:1.f];
+    [self.navigationController setNavigationBarHidden:YES];
+    
+    self.cornerColor = [UIColor whiteColor];
     switch ([XMNQRCodeReaderController videoOrientationFromInterfaceOrientation:[UIApplication sharedApplication].statusBarOrientation]) {
         case AVCaptureVideoOrientationLandscapeLeft:
         case AVCaptureVideoOrientationLandscapeRight:
-            self.centerSize = CGSizeMake(self.view.bounds.size.height - 160.f, self.view.bounds.size.height - 160.f);
+            self.centerSize = CGSizeMake(self.view.bounds.size.height - 100.f, self.view.bounds.size.height - 100.f);
             break;
         default:
-            self.centerSize = CGSizeMake(self.view.bounds.size.width - 160.f, self.view.bounds.size.width - 160.f);
+            self.centerSize = CGSizeMake(self.view.bounds.size.width - 100.f, self.view.bounds.size.width - 100.f);
             break;
     }
-    self.centerOffset = CGPointZero;
+    self.centerOffset = CGPointMake(0, -40.f);
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(handleOrientationChangedNotification:) name:UIDeviceOrientationDidChangeNotification object:nil];
 }
 
 - (void)setupUI {
     
     self.codeReaderView.hidden = YES;
-    [self.view addSubview:self.codeReaderView];
     
-    self.torch = [[XMNQRCodeTorch alloc] initWithFrame:CGRectMake(0, 0, 40, 40)];
-    [self.torch addTarget:self action:@selector(handleTorchAction) forControlEvents:UIControlEventTouchUpInside];
-    self.torch.hidden = YES;
+    [self.view addSubview:self.codeReaderView];
+    [self.view addSubview:self.topView];
+    [self.view addSubview:self.bottomView];
+    [self.view addSubview:self.tipsLabel];
     [self.view addSubview:self.torch];
 
     UIActivityIndicatorView *indicatorView = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleWhiteLarge];
@@ -246,26 +321,34 @@
     __weak typeof(self) wSelf = self;
     [AVCaptureDevice requestAccessForMediaType:AVMediaTypeVideo completionHandler:^(BOOL granted) {
         
-        if (granted) {
-            dispatch_async(dispatch_get_main_queue(), ^{
-                /** 开始启动二维码扫描功能 */
-                __strong typeof(wSelf) self = wSelf;
+        /** 请求授权完成后, 回到主线程操作, 授权完成的block可能在子线程内 */
+        dispatch_async(dispatch_get_main_queue(), ^{
+            __strong typeof(wSelf) self = wSelf;
+            /** 开始启动二维码扫描功能 */
+            if (granted) {
                 [self setupAVCaptureSession];
                 [self startScaning];
-            });
-        } else {
-            __strong typeof(wSelf) self = wSelf;
-            [self showAVAuthorizationAlert];
-        }
+            }else {
+                [self showAVAuthorizationAlert];
+            }
+        });
     }];
 }
 
 - (void)setupAVCaptureSession {
     
+#if !TARGET_IPHONE_SIMULATOR
+    
     if (self.setuped) {
         [self.session stopRunning];
         [self.previewLayer removeFromSuperlayer];
     }
+    
+    //初始化链接对象
+    self.session = [[AVCaptureSession alloc]init];
+    [self.session setSessionPreset:AVCaptureSessionPresetHigh];
+
+    /** 判断当前是否是模拟器, 模拟器不做其他操作 */
     
     //获取摄像设备
     AVCaptureDevice *device = [AVCaptureDevice defaultDeviceWithMediaType:AVMediaTypeVideo];
@@ -278,21 +361,14 @@
     
     AVCaptureVideoDataOutput *output2 = [[AVCaptureVideoDataOutput alloc] init];
     [output2 setSampleBufferDelegate:(id<AVCaptureVideoDataOutputSampleBufferDelegate>)self queue:dispatch_get_main_queue()];
-    
-    //初始化链接对象
-    self.session = [[AVCaptureSession alloc]init];
-    [self.session setSessionPreset:AVCaptureSessionPresetHigh];
-    
-#if TARGET_IPHONE_SIMULATOR
-    
-#else
-    if (input) {
+
+    if (input && [self.session canAddInput:input]) {
         [self.session addInput:input];
     }
-    if (output) {
+    if (output && [self.session canAddOutput:output]) {
         [self.session addOutput:output];
     }
-    if (output2) {
+    if (output2 && [self.session canAddOutput:output2]) {
         [self.session addOutput:output2];
     }
     
@@ -303,22 +379,28 @@
     layer.videoGravity = AVLayerVideoGravityResizeAspectFill;
     layer.frame = self.view.layer.bounds;
     [self.view.layer insertSublayer:self.previewLayer = layer atIndex:0];
-    self.setuped = YES;
 #endif
+    self.setuped = YES;
 }
 
 - (void)updateReaderViewFrame {
     
+#if !TARGET_IPHONE_SIMULATOR
     if (!self.codeReaderView || !self.session.isRunning) {
+#else
+        if (!self.codeReaderView) {
+#endif
         return;
     }
     /** 重设预览界面的大小,避免大小错误 */
     self.codeReaderView.frame = self.previewLayer.frame = self.view.bounds;
     
+#if !TARGET_IPHONE_SIMULATOR
     /** 增加设置扫描区域贡呢 */
     CGRect interestRect = [self.previewLayer metadataOutputRectOfInterestForRect:CGRectInset(self.codeReaderView.renderFrame, - 50, - 50)];
     AVCaptureMetadataOutput *output = [[self.session outputs] firstObject];
     output.rectOfInterest = interestRect;
+#endif
 }
 
 - (void)showAVAuthorizationAlert {
@@ -351,6 +433,16 @@
     [self showDetailViewController:alertC sender:self];
 }
 
+- (void)showTips:(NSAttributedString *)tips animated:(BOOL)animated {
+    
+    animated = (animated || (self.tipsLabel.alpha <= .0));
+    
+    self.tipsLabel.attributedText = tips;
+    [UIView animateWithDuration:animated ? .3f : CGFLOAT_MIN animations:^{
+        self.tipsLabel.alpha = 1.f;
+    }];
+    self.tipsLabel.userInteractionEnabled = [tips.string containsString:@"反馈"];
+}
 
 #pragma mark - Setter
 
@@ -374,14 +466,70 @@
     self.codeReaderView.centerOffsetPoint = centerOffset;
 }
 
+- (void)setTitle:(NSString *)title {
+    
+    self.topView.title = title;
+}
+
 #pragma mark - Getter
 
 - (XMNQRCodeReaderView *)codeReaderView {
     
     if (!_codeReaderView) {
         _codeReaderView = [[XMNQRCodeReaderView alloc] init];
+        _codeReaderView.hidden = YES;
     }
     return _codeReaderView;
+}
+
+- (XMNQRCodeTorch *)torch {
+    
+    if (!_torch) {
+        _torch = [[XMNQRCodeTorch alloc] initWithFrame:CGRectMake(0, 0, 50, 50)];
+        [_torch addTarget:self action:@selector(handleTorchAction) forControlEvents:UIControlEventTouchUpInside];
+        _torch.hidden = YES;
+        _torch.showTips = NO;
+    }
+    return _torch;
+}
+
+- (XMNQRCodeTopView *)topView {
+    
+    if (!_topView) {
+        _topView = [[XMNQRCodeTopView alloc] initWithTitle:@"扫一扫"];
+        [_topView.backButton addTarget:self action:@selector(handleBackAction) forControlEvents:UIControlEventTouchUpInside];
+        [_topView.ablumButton addTarget:self action:@selector(handleAblumAction) forControlEvents:UIControlEventTouchUpInside];
+    }
+    return _topView;
+}
+
+- (XMNQRCodeBottomView *)bottomView {
+    
+    if (!_bottomView) {
+        _bottomView = [[XMNQRCodeBottomView alloc] initWithFrame:CGRectMake(0, self.view.bounds.size.height - 135.f, self.view.bounds.size.width, 135.f)];
+        [_bottomView.otherButton addTarget:self action:@selector(handleOtherAction) forControlEvents:UIControlEventTouchUpInside];
+    }
+    return _bottomView;
+}
+
+- (UILabel *)tipsLabel {
+    
+    if (!_tipsLabel) {
+        _tipsLabel = [[UILabel alloc] init];
+        _tipsLabel.textColor = [UIColor whiteColor];
+        _tipsLabel.font = [UIFont systemFontOfSize:13.f];
+        _tipsLabel.alpha = .0f;
+        _tipsLabel.userInteractionEnabled = YES;
+        _tipsLabel.textAlignment = NSTextAlignmentCenter;
+        UITapGestureRecognizer *tapGes = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(handleReportAction)];
+        [_tipsLabel addGestureRecognizer:tapGes];
+    }
+    return _tipsLabel;
+}
+
+- (NSString *)title {
+    
+    return self.topView.title;
 }
 
 #pragma mark - Class Methods
@@ -399,8 +547,6 @@
             return AVCaptureVideoOrientationPortraitUpsideDown;
     }
 }
-
-#pragma mark - Class Method
 
 + (NSString *)readQRCodeWithImage:(UIImage * __nonnull)image {
     
@@ -429,8 +575,29 @@
     }
 }
 
++ (BOOL)safeUpdateConfigurationForDevice:(AVCaptureDevice *)device
+                              forSession:(AVCaptureSession *)session
+                        operationHandler:(void(^)(AVCaptureDevice * device))operationHandler {
+    
+    NSError *error;
+    BOOL locked = [device lockForConfiguration:&error];
+    if (locked && !error) {
+        [session beginConfiguration];
+        operationHandler(device);
+        [session commitConfiguration];
+        [device unlockForConfiguration];
+        return YES;
+    }else {
+#if DEBUG
+        NSLog(@"lock device :%@ failed :%@",device, [error localizedDescription]);
+#endif
+        return NO;
+    }
+}
+
 @end
 
+#pragma mark - XMNQRCodeReaderController (XMNCaptureDelegate)
 
 @implementation XMNQRCodeReaderController (XMNCaptureDelegate)
 
@@ -440,13 +607,15 @@ didOutputMetadataObjects:(NSArray<AVMetadataObject *> *)metadataObjects
     
     AVMetadataObject *codeObject = [metadataObjects firstObject];
     if (codeObject && [codeObject isKindOfClass:[AVMetadataMachineReadableCodeObject class]] && [(AVMetadataMachineReadableCodeObject *)codeObject stringValue]) {
+        
         [self stopScaning];
-
         /** 增加识别完成后震动提示 */
         [XMNQRCodeReaderController playingSystemVibrate];
         self.completionHandler ? self.completionHandler([(AVMetadataMachineReadableCodeObject *)codeObject stringValue]) : nil;
     }else {
+#if DEBUG
         NSLog(@"scan code does not has result");
+#endif
     }
 }
 
@@ -464,6 +633,7 @@ didOutputSampleBuffer:(CMSampleBufferRef)sampleBuffer
 
 @end
 
+#pragma mark - XMNQRCodeReaderController (XMNQRCodeCaptureUtils)
 
 @implementation XMNQRCodeReaderController (XMNQRCodeCaptureUtils)
 
@@ -504,25 +674,25 @@ didOutputSampleBuffer:(CMSampleBufferRef)sampleBuffer
                                                }];
 }
 
-
-+ (BOOL)safeUpdateConfigurationForDevice:(AVCaptureDevice *)device
-                              forSession:(AVCaptureSession *)session
-                        operationHandler:(void(^)(AVCaptureDevice * device))operationHandler {
+- (NSAttributedString *)tipsForState:(XMNQRCodeScanState)state {
     
-    NSError *error;
-    BOOL locked = [device lockForConfiguration:&error];
-    if (locked && !error) {
-        [session beginConfiguration];
-        operationHandler(device);
-        [session commitConfiguration];
-        [device unlockForConfiguration];
-        return YES;
-    }else {
-#if DEBUG
-        NSLog(@"lock device :%@ failed :%@",device, [error localizedDescription]);
-#endif
-        return NO;
+    NSMutableAttributedString *attrs;
+    switch (state) {
+        case XMNQRCodeScanStateNeedReport:
+        case XMNQRCodeScanStateUnreconizedImage:
+        {
+            attrs = [[NSMutableAttributedString alloc] initWithString:state == XMNQRCodeScanStateUnreconizedImage ? @"无法识别图片二维码，点此反馈" : @"未扫描到二维码，点此反馈"];
+            [attrs addAttributes:@{NSForegroundColorAttributeName : [UIColor colorWithRed:78/255.f green:157/255.f blue:224/255.f alpha:1.f]} range:NSMakeRange(attrs.string.length - 4, 4)];
+        }
+            break;
+        case XMNQRCodeScanStateUnreconized:
+            attrs = [[NSMutableAttributedString alloc] initWithString:@"请对准二维码，耐心等待"];
+            break;
+        case XMNQRCodeScanStateDefault:
+        default:
+            return nil;
     }
+    return [attrs copy];
 }
 
 @end

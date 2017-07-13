@@ -14,6 +14,8 @@
 @property (assign, nonatomic) CGSize renderSize;
 /** 渲染区域的中间位置偏移量  默认CGPointZero */
 @property (assign, nonatomic) CGPoint centerOffsetPoint;
+/** 扫描区域的内容缩进 */
+@property (assign, nonatomic) UIOffset renderOffset;
 
 /** 扫描区域 {self.renderCenter,
  self.renderSize} */
@@ -43,7 +45,6 @@
  *  @brief 停止扫描动画
  */
 - (void)stopAnimation;
-
 
 /**
  开启放大动画
