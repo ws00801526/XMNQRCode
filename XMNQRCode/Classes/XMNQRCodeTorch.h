@@ -17,6 +17,8 @@
 @property (assign, nonatomic, getter=isOn) BOOL on;
 /** 当前光亮度 */
 @property (assign, nonatomic, readonly) CGFloat brightness;
+/** 是否显示tips 默认NO */
+@property (assign, nonatomic) BOOL showTips;
 
 /**
  更新brightnessValue

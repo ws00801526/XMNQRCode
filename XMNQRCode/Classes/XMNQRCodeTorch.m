@@ -70,6 +70,7 @@
 - (void)setupUI {
 
     self.torchView = [[UIImageView alloc] init];
+    self.torchView.contentMode = UIViewContentModeCenter;
     self.tipsLabel = [[UILabel alloc] init];
     self.tipsLabel.textAlignment = NSTextAlignmentCenter;
     self.tipsLabel.font = [UIFont systemFontOfSize:10.f];
@@ -83,6 +84,8 @@
     
     [self.torchView sizeToFit];
     [self.tipsLabel sizeToFit];
+
+    self.showTips = YES;
 }
 
 - (void)showTrochView:(BOOL)animated {
@@ -137,7 +140,7 @@
     
     _on = on;
     self.tipsLabel.text = on ? @"轻触关闭" : @"轻触照亮";
-    self.torchView.image = [UIImage imageNamed:on ? @"scaning_torch_on" : @"scaning_torch_off" inBundle:kXMNQRCodeBundle compatibleWithTraitCollection:nil];
+    self.torchView.image = on ? [self onImage] : [self offImage];
     [self sendActionsForControlEvents:UIControlEventValueChanged];
 }
 
@@ -151,6 +154,20 @@
     }
 }
 
+- (void)setShowTips:(BOOL)showTips {
+    
+    _showTips = showTips;
+    self.torchView.image = self.isOn ? [self onImage] : [self offImage];
+    self.torchView.contentMode = showTips ? UIViewContentModeCenter : UIViewContentModeBottom;
+    if (showTips) {
+        self.tipsLabel.hidden = NO;
+        self.torchView.frame = CGRectMake(0, 0, self.torchView.image.size.width, self.torchView.image.size.height);
+    }else {
+        self.tipsLabel.hidden = YES;
+        self.torchView.frame = self.bounds;
+    }
+}
+
 #pragma mark - Getter
 
 - (BOOL)isOn {
@@ -161,6 +178,16 @@
 - (BOOL)isFirst {
  
     return _first;
+}
+
+- (UIImage *)onImage {
+    
+    return [UIImage imageNamed:self.showTips ? @"scaning_torch_on" : @"scaning_torch_on2" inBundle:kXMNQRCodeBundle compatibleWithTraitCollection:nil];
+}
+
+- (UIImage *)offImage {
+    
+    return [UIImage imageNamed:self.showTips ? @"scaning_torch_off" : @"scaning_torch_off2" inBundle:kXMNQRCodeBundle compatibleWithTraitCollection:nil];
 }
 
 @end
