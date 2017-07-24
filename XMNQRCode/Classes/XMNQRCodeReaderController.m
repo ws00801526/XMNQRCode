@@ -304,7 +304,8 @@ typedef NS_ENUM(NSUInteger, XMNQRCodeScanState) {
     
     [self.view addSubview:self.codeReaderView];
     [self.view addSubview:self.topView];
-    [self.view addSubview:self.bottomView];
+    /** 去除底部bottomView 功能 */
+//    [self.view addSubview:self.bottomView];
     [self.view addSubview:self.tipsLabel];
     [self.view addSubview:self.torch];
 
