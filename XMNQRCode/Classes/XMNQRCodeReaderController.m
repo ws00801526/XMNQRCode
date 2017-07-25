@@ -496,7 +496,7 @@ typedef NS_ENUM(NSUInteger, XMNQRCodeScanState) {
 - (XMNQRCodeTopView *)topView {
     
     if (!_topView) {
-        _topView = [[XMNQRCodeTopView alloc] initWithTitle:self.title ? : @"扫一扫"];
+        _topView = [[XMNQRCodeTopView alloc] initWithTitle:@"扫一扫"];
         [_topView.backButton addTarget:self action:@selector(handleBackAction) forControlEvents:UIControlEventTouchUpInside];
         [_topView.ablumButton addTarget:self action:@selector(handleAblumAction) forControlEvents:UIControlEventTouchUpInside];
     }
