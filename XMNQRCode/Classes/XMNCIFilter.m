@@ -109,7 +109,7 @@
     };
 }
 
-- (XMNCIFilter *(^)())alphaFilter {
+- (XMNCIFilter *(^)(void))alphaFilter {
     
     __weak typeof(self) wSelf = self;
     return ^XMNCIFilter *() {

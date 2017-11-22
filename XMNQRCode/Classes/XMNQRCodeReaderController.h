@@ -10,12 +10,14 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
+typedef void(^XMNQRCodeReaderCompletionHandler)(NSString *__nullable result);
+
 @class XMNQRCodeReaderController;
 @protocol XMNQRCodeReaderControllerDelegate <NSObject>
 
 - (void)codeReaderControllerShowAblumController:(XMNQRCodeReaderController *)controller completionHandler:(void(^)(UIImage *image))completionHandler;
-- (void)codeReaderControllerShowReportController:(XMNQRCodeReaderController *)controller completionHandler:(void(^)())completionHandler;
-- (void)codeReaderControllerShowOtherController:(XMNQRCodeReaderController *)controller completionHandler:(void(^)())completionHandler;
+- (void)codeReaderControllerShowReportController:(XMNQRCodeReaderController *)controller completionHandler:(void(^)(void))completionHandler;
+- (void)codeReaderControllerShowOtherController:(XMNQRCodeReaderController *)controller completionHandler:(void(^)(void))completionHandler;
 
 @end
 
@@ -33,9 +35,13 @@ NS_ASSUME_NONNULL_BEGIN
 @property (assign, nonatomic) CGSize  centerSize;
 /** 扫描框中心点位移, 默认UIOffsetZero */
 @property (assign, nonatomic) CGPoint centerOffset;
+/** 是否显示album按钮 */
+@property (assign, nonatomic, getter=isAlbumAvailable) BOOL albumAvailable;
+/** 是否显示report提示 */
+@property (assign, nonatomic, getter=isReportAvailable) BOOL reportAvailable;
 
 /** 扫描完成回调block */
-@property (copy, nonatomic, nullable)   void(^completionHandler)(NSString *__nullable result);
+@property (copy, nonatomic, nullable) XMNQRCodeReaderCompletionHandler completionHandler;
 
 - (instancetype)initWithCoder:(NSCoder *)aDecoder NS_UNAVAILABLE;
 - (instancetype)initWithNibName:(nullable NSString *)nibNameOrNil bundle:(nullable NSBundle *)nibBundleOrNil NS_UNAVAILABLE;
@@ -46,7 +52,7 @@ NS_ASSUME_NONNULL_BEGIN
  @param completionHandler 扫描回调handler
  @return XMNQRCodeReaderController 实例
  */
-- (instancetype)initWithCompletionHandler:(nullable void(^)(NSString *__nullable result))completionHandler;
+- (instancetype)initWithCompletionHandler:(nullable XMNQRCodeReaderCompletionHandler)completionHandler;
 
 
 /**
@@ -57,7 +63,7 @@ NS_ASSUME_NONNULL_BEGIN
  @return XMNQRCodeReaderController 实例
  */
 - (instancetype)initWithMetadataObjectTypes:(NSArray * _Nullable)metadataObjectTypes
-                          completionHandler:(nullable void(^)(NSString *__nullable result))completionHandler NS_DESIGNATED_INITIALIZER;
+                          completionHandler:(nullable XMNQRCodeReaderCompletionHandler)completionHandler NS_DESIGNATED_INITIALIZER;
 
 /**
  开始扫描

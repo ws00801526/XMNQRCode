@@ -24,7 +24,7 @@
 /** 替换前景色, 背景色滤镜 */
 @property (copy, nonatomic, readonly)   XMNCIFilter *(^falseColorFilter)(UIColor *firstColor, UIColor *secondColor);
 /** 透明度滤镜效果 */
-@property (copy, nonatomic, readonly)   XMNCIFilter *(^alphaFilter)();
+@property (copy, nonatomic, readonly)   XMNCIFilter *(^alphaFilter)(void);
 /** 提供CGAffine滤镜效果 */
 @property (copy, nonatomic, readonly)   XMNCIFilter *(^affineFilter)(CGAffineTransform transfrom);
 /** 提供替换前景图片, 背景图效果 */

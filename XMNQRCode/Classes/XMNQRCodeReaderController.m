@@ -55,7 +55,7 @@ typedef NS_ENUM(NSUInteger, XMNQRCodeScanState) {
 
 /**
  修改对应点的曝光度, 聚焦点
-
+ 
  @param point 触摸点
  */
 - (void)focusCameraOnPoint:(CGPoint)point;
@@ -114,9 +114,9 @@ typedef NS_ENUM(NSUInteger, XMNQRCodeScanState) {
 #pragma mark - Override Methods
 
 - (void)viewDidLoad {
-
+    
     [super viewDidLoad];
-
+    
     [self setup];
     [self setupUI];
     [self setupAVCaptureAuthorization];
@@ -191,11 +191,11 @@ typedef NS_ENUM(NSUInteger, XMNQRCodeScanState) {
     
     /** 设置超时后, 提示二维码无法扫描提示label */
     [self performSelector:@selector(showTips:animated:) withObject:[self tipsForState:XMNQRCodeScanStateUnreconized] afterDelay:5.f];
-    [self performSelector:@selector(showTips:animated:) withObject:[self tipsForState:XMNQRCodeScanStateNeedReport] afterDelay:10.f];
+    if (self.isReportAvailable) { [self performSelector:@selector(showTips:animated:) withObject:[self tipsForState:XMNQRCodeScanStateNeedReport] afterDelay:10.f]; }
 }
 
 - (void)stopScaning {
-
+    
     self.tipsLabel.alpha = .0f;
     [self.codeReaderView stopAnimation];
 #if !TARGET_IPHONE_SIMULATOR
@@ -305,10 +305,10 @@ typedef NS_ENUM(NSUInteger, XMNQRCodeScanState) {
     [self.view addSubview:self.codeReaderView];
     [self.view addSubview:self.topView];
     /** 去除底部bottomView 功能 */
-//    [self.view addSubview:self.bottomView];
+    //    [self.view addSubview:self.bottomView];
     [self.view addSubview:self.tipsLabel];
     [self.view addSubview:self.torch];
-
+    
     UIActivityIndicatorView *indicatorView = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleWhiteLarge];
     [indicatorView startAnimating];
     indicatorView.center = self.view.center;
@@ -347,7 +347,7 @@ typedef NS_ENUM(NSUInteger, XMNQRCodeScanState) {
     //初始化链接对象
     self.session = [[AVCaptureSession alloc]init];
     [self.session setSessionPreset:AVCaptureSessionPresetHigh];
-
+    
     /** 判断当前是否是模拟器, 模拟器不做其他操作 */
     
     //获取摄像设备
@@ -361,7 +361,7 @@ typedef NS_ENUM(NSUInteger, XMNQRCodeScanState) {
     
     AVCaptureVideoDataOutput *output2 = [[AVCaptureVideoDataOutput alloc] init];
     [output2 setSampleBufferDelegate:(id<AVCaptureVideoDataOutputSampleBufferDelegate>)self queue:dispatch_get_main_queue()];
-
+    
     if (input && [self.session canAddInput:input]) {
         [self.session addInput:input];
     }
@@ -386,15 +386,12 @@ typedef NS_ENUM(NSUInteger, XMNQRCodeScanState) {
 - (void)updateReaderViewFrame {
     
 #if !TARGET_IPHONE_SIMULATOR
-    if (!self.codeReaderView || !self.session.isRunning) {
+    if (!self.codeReaderView || !self.session.isRunning) { return; }
 #else
-        if (!self.codeReaderView) {
+    if (!self.codeReaderView) { return; }
 #endif
-        return;
-    }
-    /** 重设预览界面的大小,避免大小错误 */
     self.codeReaderView.frame = self.previewLayer.frame = self.view.bounds;
-    
+
 #if !TARGET_IPHONE_SIMULATOR
     /** 增加设置扫描区域贡呢 */
     CGRect interestRect = [self.previewLayer metadataOutputRectOfInterestForRect:CGRectInset(self.codeReaderView.renderFrame, - 50, - 50)];
@@ -436,7 +433,6 @@ typedef NS_ENUM(NSUInteger, XMNQRCodeScanState) {
 - (void)showTips:(NSAttributedString *)tips animated:(BOOL)animated {
     
     animated = (animated || (self.tipsLabel.alpha <= .0));
-    
     self.tipsLabel.attributedText = tips;
     [UIView animateWithDuration:animated ? .3f : CGFLOAT_MIN animations:^{
         self.tipsLabel.alpha = 1.f;
@@ -469,6 +465,10 @@ typedef NS_ENUM(NSUInteger, XMNQRCodeScanState) {
 - (void)setTitle:(NSString *)title {
     
     self.topView.title = title;
+}
+
+- (void)setAlbumAvailable:(BOOL)albumAvailable {
+    self.topView.ablumButton.hidden = !albumAvailable;
 }
 
 #pragma mark - Getter
@@ -532,6 +532,12 @@ typedef NS_ENUM(NSUInteger, XMNQRCodeScanState) {
     return self.topView.title;
 }
 
+- (BOOL)isAlbumAvailable {
+    return !self.topView.ablumButton.hidden;
+}
+
+- (BOOL)isReportAvailable { return _reportAvailable; }
+
 #pragma mark - Class Methods
 
 + (AVCaptureVideoOrientation)videoOrientationFromInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation {
@@ -562,17 +568,20 @@ typedef NS_ENUM(NSUInteger, XMNQRCodeScanState) {
     
     /** 增加识别完成后震动提示 */
     [XMNQRCodeReaderController playingSystemVibrate];
-
+    
     return result;
 }
 
 + (void)playingSystemVibrate {
     
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored"-Weverything"
     if ([[UIDevice currentDevice].systemVersion floatValue] >= 9.0f) {
         AudioServicesPlaySystemSoundWithCompletion(kSystemSoundID_Vibrate, NULL);
     }else {
         AudioServicesPlaySystemSound(kSystemSoundID_Vibrate);
     }
+#pragma clang diagnostic pop
 }
 
 + (BOOL)safeUpdateConfigurationForDevice:(AVCaptureDevice *)device
@@ -622,7 +631,7 @@ didOutputMetadataObjects:(NSArray<AVMetadataObject *> *)metadataObjects
 - (void)captureOutput:(AVCaptureOutput *)captureOutput
 didOutputSampleBuffer:(CMSampleBufferRef)sampleBuffer
        fromConnection:(AVCaptureConnection *)connection {
-
+    
     CFDictionaryRef metadataDict = CMCopyDictionaryOfAttachments(NULL,sampleBuffer, kCMAttachmentMode_ShouldPropagate);
     NSDictionary *metadata = [[NSMutableDictionary alloc] initWithDictionary:(__bridge NSDictionary*)metadataDict];
     CFRelease(metadataDict);
@@ -645,16 +654,16 @@ didOutputSampleBuffer:(CMSampleBufferRef)sampleBuffer
 - (BOOL)switchFlash:(BOOL)on {
     
     return [XMNQRCodeReaderController safeUpdateConfigurationForDevice:[[self.session.inputs firstObject] device] forSession:self.session
-                                               operationHandler:^(AVCaptureDevice *device) {
-                                                   
-                                                   [device setTorchMode:on ? AVCaptureTorchModeOn : AVCaptureTorchModeOff];
-                                               }];
+                                                      operationHandler:^(AVCaptureDevice *device) {
+                                                          
+                                                          [device setTorchMode:on ? AVCaptureTorchModeOn : AVCaptureTorchModeOff];
+                                                      }];
 }
 
 
 /**
  改变摄像头曝光状态
-
+ 
  @param point 摄像头聚焦的点
  */
 - (void)focusCameraOnPoint:(CGPoint)point {
@@ -663,7 +672,7 @@ didOutputSampleBuffer:(CMSampleBufferRef)sampleBuffer
                                                      forSession:self.session
      
                                                operationHandler:^(AVCaptureDevice *device) {
-                                                  
+                                                   
                                                    if ([device isFocusPointOfInterestSupported]) {
                                                        [device setFocusPointOfInterest:point];
                                                    }
