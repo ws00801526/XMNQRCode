@@ -39,6 +39,8 @@ typedef void(^XMNQRCodeReaderCompletionHandler)(NSString *__nullable result);
 @property (assign, nonatomic, getter=isAlbumAvailable) BOOL albumAvailable;
 /** 是否显示report提示 */
 @property (assign, nonatomic, getter=isReportAvailable) BOOL reportAvailable;
+/** 是否使用bottomView功能 */
+@property (assign, nonatomic, getter=isBottomAvailable) BOOL bottomAvailable;
 
 /** 扫描完成回调block */
 @property (copy, nonatomic, nullable) XMNQRCodeReaderCompletionHandler completionHandler;

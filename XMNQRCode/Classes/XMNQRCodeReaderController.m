@@ -28,7 +28,7 @@ typedef NS_ENUM(NSUInteger, XMNQRCodeScanState) {
 @property (strong, nonatomic) AVCaptureSession *session;
 @property (strong, nonatomic) XMNQRCodeReaderView *codeReaderView;
 @property (strong, nonatomic) XMNQRCodeTopView *topView;
-@property (strong, nonatomic) XMNQRCodeBottomView *bottomView;
+@property (strong, nonatomic) XMNQRCodeBottomView *bottomFunctionView;
 @property (strong, nonatomic) XMNQRCodeTorch *torch;
 @property (strong, nonatomic) UILabel *tipsLabel;
 @property (strong, nonatomic)   UIActivityIndicatorView *indicatorView;
@@ -136,9 +136,7 @@ typedef NS_ENUM(NSUInteger, XMNQRCodeScanState) {
 #if DEBUG
     NSLog(@"%@ is %@ing", self, NSStringFromSelector(_cmd));
 #endif
-    if (self.setuped) {
-        [self startScaning];
-    }
+    if (self.setuped) { [self startScaning]; }
     [self.navigationController setNavigationBarHidden:YES animated:animated];
 }
 
@@ -167,13 +165,9 @@ typedef NS_ENUM(NSUInteger, XMNQRCodeScanState) {
 - (void)startScaning {
     
 #if !TARGET_IPHONE_SIMULATOR
-    if (self.session.isRunning) {
-        return;
-    }
+    if (self.session.isRunning) { return; }
     
-    if (!self.setuped) {
-        [self setupAVCaptureSession];
-    }
+    if (!self.setuped) { [self setupAVCaptureSession]; }
     
     [self.session startRunning];
 #else
@@ -218,9 +212,8 @@ typedef NS_ENUM(NSUInteger, XMNQRCodeScanState) {
 - (void)handleTorchAction {
     
     BOOL on = !self.torch.isOn;
-    if ([self switchFlash:on]) {
-        self.torch.on = on;
-    }else {
+    if ([self switchFlash:on]) { self.torch.on = on; }
+    else {
 #if DEBUG
         NSLog(@"开启闪光灯失败");
 #endif
@@ -256,7 +249,7 @@ typedef NS_ENUM(NSUInteger, XMNQRCodeScanState) {
                                                      NSString *result = [XMNQRCodeReaderController readQRCodeWithImage:image];
                                                      if (result && result.length) {
                                                          self.completionHandler ? self.completionHandler(result) : nil;
-                                                     }else {
+                                                     } else {
                                                          [self showTips:[self tipsForState:XMNQRCodeScanStateUnreconizedImage] animated:YES];
 #if DEBUG
                                                          NSLog(@"识别图片二维码失败, 请重新选择");
@@ -304,8 +297,7 @@ typedef NS_ENUM(NSUInteger, XMNQRCodeScanState) {
     
     [self.view addSubview:self.codeReaderView];
     [self.view addSubview:self.topView];
-    /** 去除底部bottomView 功能 */
-    //    [self.view addSubview:self.bottomView];
+    [self.view addSubview:self.bottomFunctionView];
     [self.view addSubview:self.tipsLabel];
     [self.view addSubview:self.torch];
     
@@ -328,7 +320,7 @@ typedef NS_ENUM(NSUInteger, XMNQRCodeScanState) {
             if (granted) {
                 [self setupAVCaptureSession];
                 [self startScaning];
-            }else {
+            } else {
                 [self showAVAuthorizationAlert];
             }
         });
@@ -443,7 +435,6 @@ typedef NS_ENUM(NSUInteger, XMNQRCodeScanState) {
 #pragma mark - Setter
 
 - (void)setLineColor:(UIColor *)lineColor {
-    
     self.codeReaderView.scaningLineColor = lineColor;
 }
 
@@ -469,6 +460,10 @@ typedef NS_ENUM(NSUInteger, XMNQRCodeScanState) {
 
 - (void)setAlbumAvailable:(BOOL)albumAvailable {
     self.topView.ablumButton.hidden = !albumAvailable;
+}
+
+- (void)setBottomAvailable:(BOOL)bottomAvailable {
+    self.bottomFunctionView.hidden = !bottomAvailable;
 }
 
 #pragma mark - Getter
@@ -503,13 +498,13 @@ typedef NS_ENUM(NSUInteger, XMNQRCodeScanState) {
     return _topView;
 }
 
-- (XMNQRCodeBottomView *)bottomView {
+- (XMNQRCodeBottomView *)bottomFunctionView {
     
-    if (!_bottomView) {
-        _bottomView = [[XMNQRCodeBottomView alloc] initWithFrame:CGRectMake(0, self.view.bounds.size.height - 135.f, self.view.bounds.size.width, 135.f)];
-        [_bottomView.otherButton addTarget:self action:@selector(handleOtherAction) forControlEvents:UIControlEventTouchUpInside];
+    if (!_bottomFunctionView) {
+        _bottomFunctionView = [[XMNQRCodeBottomView alloc] initWithFrame:CGRectMake(0, [UIScreen mainScreen].bounds.size.height - 135.f, [UIScreen mainScreen].bounds.size.width, 135.f)];
+        [_bottomFunctionView.otherButton addTarget:self action:@selector(handleOtherAction) forControlEvents:UIControlEventTouchUpInside];
     }
-    return _bottomView;
+    return _bottomFunctionView;
 }
 
 - (UILabel *)tipsLabel {
@@ -532,11 +527,11 @@ typedef NS_ENUM(NSUInteger, XMNQRCodeScanState) {
     return self.topView.title;
 }
 
-- (BOOL)isAlbumAvailable {
-    return !self.topView.ablumButton.hidden;
-}
+- (BOOL)isAlbumAvailable { return !self.topView.ablumButton.hidden; }
 
 - (BOOL)isReportAvailable { return _reportAvailable; }
+
+- (BOOL)isBottomAvailable { return !self.bottomFunctionView.hidden; }
 
 #pragma mark - Class Methods
 
@@ -556,9 +551,7 @@ typedef NS_ENUM(NSUInteger, XMNQRCodeScanState) {
 
 + (NSString *)readQRCodeWithImage:(UIImage * __nonnull)image {
     
-    if (!image) {
-        return nil;
-    }
+    if (!image) { return nil; }
     CIContext *context = [CIContext contextWithOptions:nil];
     CIDetector *detector = [CIDetector detectorOfType:CIDetectorTypeQRCode context:context options:@{CIDetectorAccuracy:CIDetectorAccuracyHigh}];
     CIImage *ciImage = [CIImage imageWithCGImage:image.CGImage];
