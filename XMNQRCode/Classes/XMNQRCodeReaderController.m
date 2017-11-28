@@ -502,6 +502,7 @@ typedef NS_ENUM(NSUInteger, XMNQRCodeScanState) {
     
     if (!_bottomFunctionView) {
         _bottomFunctionView = [[XMNQRCodeBottomView alloc] initWithFrame:CGRectMake(0, [UIScreen mainScreen].bounds.size.height - 135.f, [UIScreen mainScreen].bounds.size.width, 135.f)];
+        _bottomFunctionView.hidden = YES;
         [_bottomFunctionView.otherButton addTarget:self action:@selector(handleOtherAction) forControlEvents:UIControlEventTouchUpInside];
     }
     return _bottomFunctionView;
