@@ -8,7 +8,7 @@
 
 Pod::Spec.new do |s|
   s.name         = "XMNQRCode"
-  s.version      = "0.3.0"
+  s.version      = "0.3.1"
   s.summary      = "使用系统api实现二维码扫描功能,二维码图片识别功能, 增加二维码,条形码生成功能"
   s.homepage     = "https://github.com/ws00801526/XMNQRCode"
   s.license      = "MIT"
