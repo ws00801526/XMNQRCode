@@ -22,7 +22,7 @@ FOUNDATION_EXTERN NSBundle * kXMNQRCodeBundle;
 @dynamic title;
 - (instancetype)initWithTitle:(NSString *)title {
     
-    if (self = [super initWithFrame:CGRectMake(0, 0, [UIScreen mainScreen].bounds.size.width, 64.f)]) {
+    if (self = [super initWithFrame:CGRectMake(0, 0, [UIScreen mainScreen].bounds.size.width, (iPhoneX ? 108 : 64.f))]) {
         
         [self setupUI];
         self.title = title;
@@ -47,14 +47,14 @@ FOUNDATION_EXTERN NSBundle * kXMNQRCodeBundle;
         self.titleLabel.textColor = [UIColor whiteColor];
         self.titleLabel.font = [UIFont boldSystemFontOfSize:18.f];
         self.titleLabel.textAlignment = NSTextAlignmentCenter;
-        self.titleLabel.frame = CGRectMake(100, 20, self.bounds.size.width - 200.f, 44.f);
+        self.titleLabel.frame = CGRectMake(100, (iPhoneX ? 44.f : 20.f), self.bounds.size.width - 200.f, 44.f);
         [self addSubview:self.titleLabel];
     }
     
     {/** 初始化backButton */
         self.backButton = [UIButton buttonWithType:UIButtonTypeCustom];
         [self.backButton setImage:[UIImage imageNamed:@"scaning_back" inBundle:kXMNQRCodeBundle compatibleWithTraitCollection:nil] forState:UIControlStateNormal];
-        self.backButton.frame = CGRectMake(0, 20, 40.f, 44.f);
+        self.backButton.frame = CGRectMake(0, (iPhoneX ? 44.f : 20.f), 40.f, 44.f);
         [self addSubview:self.backButton];
     }
     
@@ -64,7 +64,7 @@ FOUNDATION_EXTERN NSBundle * kXMNQRCodeBundle;
         [self.ablumButton setTitle:@"相册" forState:UIControlStateNormal];
         [self.ablumButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
         [self.ablumButton.titleLabel setFont:[UIFont systemFontOfSize:16.f]];
-        self.ablumButton.frame = CGRectMake(self.bounds.size.width - 50.f, 20, 50.f, 44.f);
+        self.ablumButton.frame = CGRectMake(self.bounds.size.width - 50.f, (iPhoneX ? 44.f : 20.f), 50.f, 44.f);
         [self addSubview:self.ablumButton];
     }
 }

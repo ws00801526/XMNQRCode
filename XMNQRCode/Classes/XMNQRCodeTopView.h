@@ -8,6 +8,10 @@
 
 #import <UIKit/UIKit.h>
 
+#ifndef iPhoneX
+    #define iPhoneX (((int)[UIScreen mainScreen].bounds.size.height == 812) ? YES : NO)
+#endif
+
 @interface XMNQRCodeTopView : UIView
 
 @property (strong, nonatomic, readonly) UIButton *backButton;
