@@ -401,7 +401,7 @@ typedef NS_ENUM(NSUInteger, XMNQRCodeScanState) {
         __strong typeof(*&wSelf) self = wSelf;
         if (self.presentingViewController) {
             [self.presentingViewController dismissViewControllerAnimated:YES completion:nil];
-        }else {
+        } else {
             [self.navigationController popViewControllerAnimated:YES];
         }
     }];
@@ -411,7 +411,7 @@ typedef NS_ENUM(NSUInteger, XMNQRCodeScanState) {
         [[UIApplication sharedApplication] openURL:[NSURL URLWithString:UIApplicationOpenSettingsURLString]];
         if (self.presentingViewController) {
             [self.presentingViewController dismissViewControllerAnimated:YES completion:nil];
-        }else {
+        } else {
             [self.navigationController popViewControllerAnimated:YES];
         }
     }];
@@ -551,17 +551,27 @@ typedef NS_ENUM(NSUInteger, XMNQRCodeScanState) {
 
 + (NSString *)readQRCodeWithImage:(UIImage * __nonnull)image {
     
+    return [self readQRCodeWithImage:image shakable:YES];
+}
+
++ (NSString * __nullable)readQRCodeWithImage:(UIImage * __nonnull)image shakable:(BOOL)shakable {
+    
     if (!image) { return nil; }
-    CIContext *context = [CIContext contextWithOptions:nil];
-    CIDetector *detector = [CIDetector detectorOfType:CIDetectorTypeQRCode context:context options:@{CIDetectorAccuracy:CIDetectorAccuracyHigh}];
+    CIContext *context = [CIContext contextWithOptions:@{kCIContextPriorityRequestLow : @0, kCIContextUseSoftwareRenderer : @0}];
+    CIDetector *detector = [CIDetector detectorOfType:CIDetectorTypeQRCode
+                                              context:context
+                                              options:@{CIDetectorAccuracy:CIDetectorAccuracyHigh}];
     CIImage *ciImage = [CIImage imageWithCGImage:image.CGImage];
     NSArray *features = [detector featuresInImage:ciImage];
-    CIQRCodeFeature *feature = [features firstObject];
-    NSString *result = feature.messageString;
-    
+    NSString *result = nil;
+    for (CIFeature *feature in features) {
+        if ([feature isKindOfClass:[CIQRCodeFeature class]]) {
+            result = [(CIQRCodeFeature *)feature messageString];
+            break;
+        }
+    }
     /** 增加识别完成后震动提示 */
-    [XMNQRCodeReaderController playingSystemVibrate];
-    
+    if (shakable) { [XMNQRCodeReaderController playingSystemVibrate]; }
     return result;
 }
 
@@ -571,7 +581,7 @@ typedef NS_ENUM(NSUInteger, XMNQRCodeScanState) {
 #pragma clang diagnostic ignored"-Weverything"
     if ([[UIDevice currentDevice].systemVersion floatValue] >= 9.0f) {
         AudioServicesPlaySystemSoundWithCompletion(kSystemSoundID_Vibrate, NULL);
-    }else {
+    } else {
         AudioServicesPlaySystemSound(kSystemSoundID_Vibrate);
     }
 #pragma clang diagnostic pop
@@ -589,7 +599,7 @@ typedef NS_ENUM(NSUInteger, XMNQRCodeScanState) {
         [session commitConfiguration];
         [device unlockForConfiguration];
         return YES;
-    }else {
+    } else {
 #if DEBUG
         NSLog(@"lock device :%@ failed :%@",device, [error localizedDescription]);
 #endif
@@ -614,7 +624,7 @@ didOutputMetadataObjects:(NSArray<AVMetadataObject *> *)metadataObjects
         /** 增加识别完成后震动提示 */
         [XMNQRCodeReaderController playingSystemVibrate];
         self.completionHandler ? self.completionHandler([(AVMetadataMachineReadableCodeObject *)codeObject stringValue]) : nil;
-    }else {
+    } else {
 #if DEBUG
         NSLog(@"scan code does not has result");
 #endif

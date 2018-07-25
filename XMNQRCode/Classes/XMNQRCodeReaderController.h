@@ -84,7 +84,7 @@ typedef void(^XMNQRCodeReaderCompletionHandler)(NSString *__nullable result);
  @return 识别后的二维码数据
  */
 + (NSString * __nullable)readQRCodeWithImage:(UIImage * __nonnull)image;
-
++ (NSString * __nullable)readQRCodeWithImage:(UIImage * __nonnull)image shakable:(BOOL)shakable;
 @end
 
 NS_ASSUME_NONNULL_END
