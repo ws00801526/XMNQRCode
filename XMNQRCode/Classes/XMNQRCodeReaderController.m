@@ -52,6 +52,8 @@ typedef NS_ENUM(NSUInteger, XMNQRCodeScanState) {
  */
 - (BOOL)switchFlash:(BOOL)on;
 
+/** 调整摄像头缩放倍数 */
+- (void)updateCameraZoomLevel:(float)level;
 
 /**
  修改对应点的曝光度, 聚焦点
@@ -154,10 +156,7 @@ typedef NS_ENUM(NSUInteger, XMNQRCodeScanState) {
     [self focusCameraOnPoint:touchPoint];
 }
 
-- (UIStatusBarStyle)preferredStatusBarStyle {
-    
-    return UIStatusBarStyleLightContent;
-}
+- (UIStatusBarStyle)preferredStatusBarStyle { return UIStatusBarStyleLightContent; }
 
 #pragma mark - Public Methods
 
@@ -270,6 +269,10 @@ typedef NS_ENUM(NSUInteger, XMNQRCodeScanState) {
     }
 }
 
+- (void)handleZoomCamera {
+    [self updateCameraZoomLevel:3.5f];
+}
+
 #pragma mark - Private Methods
 
 - (void)setup {
@@ -305,6 +308,11 @@ typedef NS_ENUM(NSUInteger, XMNQRCodeScanState) {
     indicatorView.center = self.view.center;
     [self.view addSubview:self.indicatorView = indicatorView];
     self.view.backgroundColor = [UIColor blackColor];
+    
+    UITapGestureRecognizer *ges = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(handleZoomCamera)];
+    ges.numberOfTapsRequired = 2;
+    ges.numberOfTouchesRequired = 1;
+    [self.view addGestureRecognizer:ges];
 }
 
 - (void)setupAVCaptureAuthorization {
@@ -561,8 +569,8 @@ typedef NS_ENUM(NSUInteger, XMNQRCodeScanState) {
     CIDetector *detector = [CIDetector detectorOfType:CIDetectorTypeQRCode
                                               context:context
                                               options:@{CIDetectorAccuracy:CIDetectorAccuracyHigh}];
-    CIImage *ciImage = [CIImage imageWithCGImage:image.CGImage];
-    NSArray *features = [detector featuresInImage:ciImage];
+    CIImage *ciimage = [CIImage imageWithCGImage:image.CGImage];
+    NSArray *features = [detector featuresInImage:ciimage];
     NSString *result = nil;
     for (CIFeature *feature in features) {
         if ([feature isKindOfClass:[CIQRCodeFeature class]]) {
@@ -656,13 +664,29 @@ didOutputSampleBuffer:(CMSampleBufferRef)sampleBuffer
  */
 - (BOOL)switchFlash:(BOOL)on {
     
-    return [XMNQRCodeReaderController safeUpdateConfigurationForDevice:[[self.session.inputs firstObject] device] forSession:self.session
+    return [XMNQRCodeReaderController safeUpdateConfigurationForDevice:[[self.session.inputs firstObject] device]
+                                                            forSession:self.session
                                                       operationHandler:^(AVCaptureDevice *device) {
                                                           
                                                           [device setTorchMode:on ? AVCaptureTorchModeOn : AVCaptureTorchModeOff];
                                                       }];
 }
 
+- (void)updateCameraZoomLevel:(float)level {
+    
+    [XMNQRCodeReaderController safeUpdateConfigurationForDevice:[[self.session.inputs firstObject] device]
+                                                     forSession:self.session
+                                               operationHandler:^(AVCaptureDevice *device) {
+                                                   
+                                                   if (device.isRampingVideoZoom) { [device cancelVideoZoomRamp]; }
+                                                   
+                                                   if (device.videoZoomFactor == level) {
+                                                       [device rampToVideoZoomFactor:1.f withRate:10.f];
+                                                   } else {
+                                                       [device rampToVideoZoomFactor:level withRate:10.f];
+                                                   }
+                                               }];
+}
 
 /**
  改变摄像头曝光状态

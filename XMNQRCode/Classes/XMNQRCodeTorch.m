@@ -52,9 +52,7 @@
 
 - (void)updateBrightnessValue:(CGFloat)brightnessValue {
     
-    if (ABS((brightnessValue - self.brightness)) < .5f) {
-        return;
-    }
+    if (ABS((brightnessValue - self.brightness)) < .5f) { return; }
     
     [NSObject cancelPreviousPerformRequestsWithTarget:self selector:@selector(updateBrightnessInternal:) object:nil];
     [self performSelector:@selector(updateBrightnessInternal:) withObject:@(brightnessValue) afterDelay:.1f];
