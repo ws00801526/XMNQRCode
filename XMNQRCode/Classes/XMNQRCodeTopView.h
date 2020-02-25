@@ -8,9 +8,18 @@
 
 #import <UIKit/UIKit.h>
 
-#ifndef iPhoneX
-    #define iPhoneX (((int)[UIScreen mainScreen].bounds.size.height == 812) ? YES : NO)
+#ifndef SCREEN_WIDTH
+    #define SCREEN_WIDTH ([UIScreen mainScreen].bounds.size.width)
 #endif
+
+#ifndef SCREEN_HEIGHT
+    #define SCREEN_HEIGHT ([UIScreen mainScreen].bounds.size.height)
+#endif
+
+#ifndef iPhoneX
+    #define iPhoneX (((int)SCREEN_HEIGHT == 812) || ((int)SCREEN_WIDTH == 812) || ((int)SCREEN_HEIGHT == 896) || ((int)SCREEN_WIDTH == 896))
+#endif
+
 
 @interface XMNQRCodeTopView : UIView
 
