@@ -147,7 +147,7 @@
 				TargetAttributes = {
 					97B269981F0E014D0086E56E = {
 						CreatedOnToolsVersion = 8.3.3;
-						DevelopmentTeam = PZJP3CBE8G;
+						DevelopmentTeam = CY4833TA98;
 						ProvisioningStyle = Automatic;
 					};
 				};
@@ -157,6 +157,7 @@
 			developmentRegion = English;
 			hasScannedForEncodings = 0;
 			knownRegions = (
+				English,
 				en,
 				Base,
 			);
@@ -190,13 +191,16 @@
 			files = (
 			);
 			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
 			);
 			name = "[CP] Check Pods Manifest.lock";
 			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-XMNQRCodeDemo-checkManifestLockResult.txt",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n";
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
 			showEnvVarsInLog = 0;
 		};
 		86A95812C7C90525BE87ED42 /* [CP] Copy Pods Resources */ = {
@@ -220,9 +224,12 @@
 			files = (
 			);
 			inputPaths = (
+				"${SRCROOT}/Pods/Target Support Files/Pods-XMNQRCodeDemo/Pods-XMNQRCodeDemo-frameworks.sh",
+				"${BUILT_PRODUCTS_DIR}/XMNQRCode/XMNQRCode.framework",
 			);
 			name = "[CP] Embed Pods Frameworks";
 			outputPaths = (
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/XMNQRCode.framework",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -361,9 +368,9 @@
 			baseConfigurationReference = BE5350A6101A45B2331ABAD6 /* Pods-XMNQRCodeDemo.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				DEVELOPMENT_TEAM = PZJP3CBE8G;
+				DEVELOPMENT_TEAM = CY4833TA98;
 				INFOPLIST_FILE = XMNQRCodeDemo/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.xmfraker.XMNQRCodeDemo;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -375,9 +382,9 @@
 			baseConfigurationReference = F5BC772B4FA06B51C0F2665A /* Pods-XMNQRCodeDemo.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				DEVELOPMENT_TEAM = PZJP3CBE8G;
+				DEVELOPMENT_TEAM = CY4833TA98;
 				INFOPLIST_FILE = XMNQRCodeDemo/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.xmfraker.XMNQRCodeDemo;
 				PRODUCT_NAME = "$(TARGET_NAME)";

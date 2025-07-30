@@ -15,7 +15,7 @@
 
 #import <SafariServices/SafariServices.h>
 
-@interface ViewController ()
+@interface ViewController () <XMNQRCodeReaderControllerDelegate>
 
 @property (strong, nonatomic) XMNQRCodeBuilder *builder;
 
@@ -33,18 +33,35 @@
 - (void)handleScanQRCodeAction {
     
     __weak typeof(self) wSelf = self;
-    XMNQRCodeReaderController *rederC = [[XMNQRCodeReaderController alloc] initWithCompletionHandler:^(NSString *result) {
+    XMNQRCodeReaderController *controller = [[XMNQRCodeReaderController alloc] initWithCompletionHandler:^(NSString *result) {
         __strong typeof(wSelf) self = wSelf;
-        if (![result hasPrefix:@"http"]) {
-            
-            NSLog(@"scan success :%@",result);
-            [self.navigationController popViewControllerAnimated:YES];
-        }else {
-            SFSafariViewController *controller = [[SFSafariViewController alloc] initWithURL:[NSURL URLWithString:result]];
-            [self.navigationController pushViewController:controller animated:YES];
-        }
+//        if (![result hasPrefix:@"http"]) {
+//            [self.navigationController popViewControllerAnimated:YES];
+//        } else {
+//            SFSafariViewController *controller = [[SFSafariViewController alloc] initWithURL:[NSURL URLWithString:result]];
+//            [self.navigationController pushViewController:controller animated:YES];
+//        }
     }];
-    [self.navigationController pushViewController:rederC animated:YES];
+    controller.reportAvailable = NO;
+    controller.albumAvailable = NO;
+    controller.delegate = self;
+    controller.bottomAvailable = YES;
+    [self.navigationController pushViewController:controller animated:YES];
+}
+
+- (void)viewWillAppear:(BOOL)animated {
+    
+    [super viewWillAppear:animated];
+#if DEBUG
+    NSLog(@"%@ is %@ing", self, NSStringFromSelector(_cmd));
+#endif
+    [self.navigationController setNavigationBarHidden:NO];
+}
+
+#pragma mark - XMNQRCodeReaderControllerDelegate
+
+- (void)codeReaderControllerShowReportController:(XMNQRCodeReaderController *)controller completionHandler:(void (^)(void))completionHandler {
+    NSLog(@"need report code unavailable");
 }
 
 #pragma mark - Private Methods
@@ -134,6 +151,17 @@
     XMNSampleController *sampleC = [self.storyboard instantiateViewControllerWithIdentifier:@"XMNSampleController"];
     sampleC.image = self.builder.QRCodeImage;
     sampleC.barcodeImage = self.builder.barCodeImage;
+//    __weak typeof(self) wSelf = self;
+//    NSTimer *timer = [NSTimer timerWithTimeInterval:2.f repeats:YES block:^(NSTimer * _Nonnull timer) {
+//        __strong typeof(wSelf) self = wSelf;
+//        self.builder = [[XMNQRCodeBuilder alloc] initWithInfo:@"20202020200019201" size:CGSizeMake(315, 80)];
+//        [self.builder generateCodeImageWithMode:XMNQRCodeBuilderCodeModeQRCode completionHandler:^(UIImage * _Nullable image) {
+//            
+//            NSLog(@"create success ? :%@", image);
+//        }];
+//    }];
+//    [[NSRunLoop currentRunLoop] addTimer:timer forMode:NSDefaultRunLoopMode];
+//    [timer fire];
     [self.navigationController pushViewController:sampleC animated:YES];
 }
 

@@ -1,6 +1,6 @@
-platform :ios, '8.0'
+platform :ios, '14.0'
 use_frameworks!
-inhibit_all_warnings!
+#inhibit_all_warnings!
 
 target 'XMNQRCodeDemo' do
   pod 'XMNQRCode', :path => './'

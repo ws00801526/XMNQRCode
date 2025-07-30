@@ -17,9 +17,8 @@
 #endif
 
 #ifndef iPhoneX
-    #define iPhoneX (((int)SCREEN_HEIGHT == 812) || ((int)SCREEN_WIDTH == 812) || ((int)SCREEN_HEIGHT == 896) || ((int)SCREEN_WIDTH == 896))
+    #define iPhoneX (((int)SCREEN_HEIGHT >= 680) || ((int)SCREEN_WIDTH >= 680))
 #endif
-
 
 @interface XMNQRCodeTopView : UIView
 
